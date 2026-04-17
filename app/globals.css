@@ -622,11 +622,15 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
    ════════════════════════════════════════════════════════════ */
 
 .initial {
+  /* The enlarged Initial has room for a cap-star above and a pendant
+     below the panel, so its box is taller than the original 68×80.
+     The floated width is unchanged; the shape-outside keeps the
+     prose flowing around the panel edge, not the ornament halo. */
   float: left;
   width: 68px;
-  height: 80px;
-  margin: 6px 14px 2px 0;
-  shape-outside: margin-box;
+  height: 100px;
+  margin: 14px 16px 4px 0;
+  shape-outside: inset(14px 16px 4px 0);
   display: inline-block;
 }
 .initial svg {
@@ -634,6 +638,16 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   height: 100%;
   display: block;
   overflow: visible;
+}
+/* On mobile, give the Initial a bit more breathing room and scale
+   slightly smaller so it doesn't crowd the first two lines of prose. */
+@media (max-width: 767.98px) {
+  .initial {
+    width: 62px;
+    height: 92px;
+    margin: 10px 14px 2px 0;
+    shape-outside: inset(10px 14px 2px 0);
+  }
 }
 
 /* ════════════════════════════════════════════════════════════
