@@ -214,9 +214,15 @@ function WorkoutCard({ w }: { w: WorkoutHistoryRow }) {
               </div>
             ))}
           </div>
-          <Link href={`/workouts/${w.id}`} className="history-card-folio-link">
-            view the full folio →
-          </Link>
+          <div className="history-card-folio-flourish" aria-hidden="true">
+            <span className="history-card-folio-flourish-mark">◆</span>
+          </div>
+          <div className="history-card-folio-link-row">
+            <Link href={`/workouts/${w.id}`} className="history-card-folio-link">
+              <span>view the full folio</span>
+              <span>→</span>
+            </Link>
+          </div>
         </div>
       )}
     </div>
