@@ -24,7 +24,9 @@ import { GoogleGenAI } from "npm:@google/genai@1.0.0";
 import { EXERCISE_LIBRARY_SUMMARY } from "../_shared/exercise-library.ts";
 
 const MODEL = Deno.env.get("GEMINI_MODEL") ?? "gemini-3.1-pro-preview";
-const DEFAULT_BUCKET = Deno.env.get("SUPABASE_STORAGE_BUCKET") ?? "workout-photos";
+// Bucket env var can't start with SUPABASE_ (reserved by the Edge runtime),
+// so we use a plain STORAGE_BUCKET name here.
+const DEFAULT_BUCKET = Deno.env.get("STORAGE_BUCKET") ?? "workout-photos";
 
 function buildSystemPrompt(): string {
   return `You are an expert at reading handwritten gym and workout logs.
@@ -289,13 +291,16 @@ Deno.serve(async (req) => {
     | { inlineData: { mimeType: string; data: string } }
     | { text: string }
   > = [];
-  for (const p of paths) {
-    const { data, error } = await admin.storage.from(bucket).download(p);
+  for (const rawPath of paths) {
+    // The DB shape uses "uploads/<filename>" but the Storage key is just
+    // "<filename>". Accept either form from the caller.
+    const key = rawPath.replace(/^uploads\//, "");
+    const { data, error } = await admin.storage.from(bucket).download(key);
     if (error || !data) {
-      return json({ error: `download ${p}: ${error?.message ?? "unknown"}` }, 400);
+      return json({ error: `download ${rawPath}: ${error?.message ?? "unknown"}` }, 400);
     }
     const bytes = new Uint8Array(await data.arrayBuffer());
-    const mimeType = mimeOf(p);
+    const mimeType = mimeOf(key);
     parts.push({
       inlineData: { mimeType, data: base64Encode(bytes) },
     });

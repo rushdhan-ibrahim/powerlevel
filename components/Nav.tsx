@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SignOutButton } from "@/components/SignOutButton";
 
 /**
  * Masthead. Small-caps labels, rubric ampersands between them.
@@ -105,6 +106,8 @@ export function Nav() {
         >
           upload
         </Link>
+        <span className="amp" aria-hidden="true" style={{ opacity: 0.4 }}>·</span>
+        <SignOutButton />
       </div>
     </nav>
   );

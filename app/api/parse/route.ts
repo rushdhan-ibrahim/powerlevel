@@ -1,21 +1,20 @@
 import { NextResponse } from "next/server";
-import { parseWorkoutImages, type ImagePart } from "@/lib/gemini";
 import { saveUpload } from "@/lib/uploads";
 
 export const runtime = "nodejs";
-export const maxDuration = 180;
+export const maxDuration = 60;
 
 /**
  * POST /api/parse
  *
- * Accepts FormData with one or more image files under the "image" key.
- * Multiple images are treated as continuation pages of ONE workout —
- * Gemini merges them into a single session with one ordered exercise
- * list. To upload N independent workouts, the client makes N separate
- * POST calls (the bulk uploader does this client-side).
+ * Uploads one or more images to Supabase Storage and returns their paths.
+ * The browser then calls the `parse-workout` Supabase Edge Function with
+ * those paths — that's where Gemini runs, off Vercel's 60s cap.
  *
- * Returns the parsed workout JSON (not yet saved) plus the relative
- * paths of the saved source images for the facsimile column.
+ * The separation keeps every leg short: this endpoint only holds image
+ * bytes long enough to stream them to Storage, and the Edge Function
+ * never has to transport image bytes over HTTP (it pulls them from
+ * Storage using the service role).
  */
 export async function POST(req: Request) {
   try {
@@ -26,41 +25,29 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No image file provided" }, { status: 400 });
     }
     for (const file of files) {
-      if (!file.type.startsWith("image/")) {
+      if (!file.type.startsWith("image/") && !/heic|heif/i.test(file.name)) {
         return NextResponse.json(
-          { error: `Unsupported file type: ${file.type}` },
+          { error: `Unsupported file type: ${file.type || file.name}` },
           { status: 400 },
         );
       }
     }
 
     const saved: { relativePath: string; mimeType: string }[] = [];
-    const parts: ImagePart[] = [];
     for (const file of files) {
       const bytes = Buffer.from(await file.arrayBuffer());
       const s = await saveUpload(bytes, file.type);
       saved.push({ relativePath: s.relativePath, mimeType: s.mimeType });
-      parts.push({ bytes, mimeType: file.type });
     }
 
-    const result = await parseWorkoutImages(parts);
-
     return NextResponse.json({
-      workout: result.workout,
       imagePaths: saved.map((s) => s.relativePath),
-      // legacy field for the single-image preview
       imagePath: saved[0]?.relativePath ?? null,
-      meta: {
-        model: result.model,
-        tokensIn: result.tokensIn,
-        tokensOut: result.tokensOut,
-        pageCount: parts.length,
-      },
     });
   } catch (err) {
-    console.error("Parse error:", err);
+    console.error("Upload error:", err);
     return NextResponse.json(
-      { error: (err as Error).message ?? "Failed to parse images" },
+      { error: (err as Error).message ?? "Failed to upload images" },
       { status: 500 },
     );
   }

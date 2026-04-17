@@ -11,6 +11,7 @@ import { Ornament } from "@/components/manuscript/Ornament";
 import { Initial } from "@/components/manuscript/Initial";
 import { PageIncipit } from "@/components/manuscript/PageIncipit";
 import type { ParsedWorkout } from "@/lib/schema";
+import { parseWorkout, cleanupStorage } from "@/lib/parse_client";
 
 type ParseResponse = {
   workout: ParsedWorkout;
@@ -39,15 +40,13 @@ export default function UploadPage() {
     setMode("single-loading");
     setSingleError(null);
     try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const res = await fetch("/api/parse", { method: "POST", body: formData });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `Parse failed (${res.status})`);
-      }
-      const data: ParseResponse = await res.json();
-      setSingleResult(data);
+      const result = await parseWorkout([file]);
+      setSingleResult({
+        workout: result.workout,
+        imagePaths: result.imagePaths,
+        imagePath: result.imagePaths[0] ?? null,
+        meta: result.meta,
+      });
       setMode("single-review");
     } catch (e) {
       setSingleError((e as Error).message);
@@ -119,18 +118,7 @@ export default function UploadPage() {
     abortersRef.current.set(id, controller);
 
     try {
-      const formData = new FormData();
-      for (const f of files) formData.append("image", f);
-      const res = await fetch("/api/parse", {
-        method: "POST",
-        body: formData,
-        signal: controller.signal,
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error ?? `Parse failed (${res.status})`);
-      }
-      const data: ParseResponse = await res.json();
+      const result = await parseWorkout(files, { signal: controller.signal });
       setReviewItems((items) =>
         items.map((it) =>
           it.id === id
@@ -138,9 +126,9 @@ export default function UploadPage() {
                 ...it,
                 status: "ready",
                 result: {
-                  workout: data.workout,
-                  imagePaths: data.imagePaths ?? (data.imagePath ? [data.imagePath] : []),
-                  meta: data.meta,
+                  workout: result.workout,
+                  imagePaths: result.imagePaths,
+                  meta: result.meta,
                 },
               }
             : it,
@@ -214,17 +202,22 @@ export default function UploadPage() {
   };
 
   /* ─── discard handler — drops a parsed (or about-to-be-parsed) workout
-       from the queue without saving it. */
+       from the queue without saving it. Also deletes the photos from
+       Storage so we don't leave orphan files. */
   const handleDiscard = (queueId: string) => {
     const controller = abortersRef.current.get(queueId);
     if (controller) controller.abort();
-    setReviewItems((items) =>
-      items.map((it) =>
+    setReviewItems((items) => {
+      const victim = items.find((x) => x.id === queueId);
+      if (victim?.result?.imagePaths?.length) {
+        cleanupStorage(victim.result.imagePaths);
+      }
+      return items.map((it) =>
         it.id === queueId
           ? { ...it, status: "discarded", result: undefined, error: undefined }
           : it,
-      ),
-    );
+      );
+    });
     abortersRef.current.delete(queueId);
   };
 

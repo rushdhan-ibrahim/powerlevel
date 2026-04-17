@@ -3,6 +3,12 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ParsedWorkoutSchema } from "@/lib/schema";
 import { findCanonical, normalizeForGrouping, cleanExerciseName } from "@/lib/exercise_library";
+import { reprocessStoredImage } from "@/lib/image_pipeline";
+
+export const runtime = "nodejs";
+// Image re-processing (HEIC decode + JPEG resize) can take a moment per
+// page. Let the save route breathe on Vercel Pro; Hobby still caps at 60s.
+export const maxDuration = 120;
 
 const SaveWorkoutBody = z.object({
   workout: ParsedWorkoutSchema,
@@ -35,11 +41,28 @@ export async function POST(req: Request) {
     const body = SaveWorkoutBody.parse(await req.json());
     const { workout, imagePaths, imagePath, meta } = body;
 
-    const allPaths = imagePaths && imagePaths.length > 0
+    const rawPaths = imagePaths && imagePaths.length > 0
       ? imagePaths
       : imagePath
         ? [imagePath]
         : [];
+
+    // Hygiene pass: for every source image the review stage was looking
+    // at, produce a compressed JPEG and swap the paths to the new objects
+    // BEFORE writing the row. That way the DB never references an object
+    // that will soon be deleted, and a failure here rolls back cleanly
+    // (we haven't created the workout yet).
+    const processedPaths: string[] = [];
+    for (const p of rawPaths) {
+      try {
+        const r = await reprocessStoredImage(p);
+        processedPaths.push(r.newRelativePath);
+      } catch (e) {
+        console.warn(`[save] image pipeline failed for ${p}: ${(e as Error).message} — keeping original`);
+        processedPaths.push(p);
+      }
+    }
+    const allPaths = processedPaths;
     const primaryPath = allPaths[0] ?? null;
 
     const created = await prisma.workout.create({

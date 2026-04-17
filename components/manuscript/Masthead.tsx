@@ -18,6 +18,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SignOutButton } from "@/components/SignOutButton";
 import { format } from "date-fns";
 import { roman } from "@/lib/manuscript";
 import {
@@ -49,6 +50,9 @@ const ACTION: NavItem = { href: "/upload", label: "add", Glyph: GlyphAdd, rubric
 
 export function Masthead() {
   const pathname = usePathname();
+  // The login and auth-callback pages are pre-session — the profile link
+  // and sign-out button inside the masthead wouldn't make sense there.
+  if (pathname === "/login" || pathname.startsWith("/auth/")) return null;
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
@@ -91,6 +95,8 @@ export function Masthead() {
             </svg>
             <span>profile</span>
           </Link>
+          <span aria-hidden="true" style={{ color: "var(--ash-light)", opacity: 0.6 }}>·</span>
+          <SignOutButton />
         </div>
       </div>
 
