@@ -462,6 +462,28 @@ body {
 }
 
 /* ════════════════════════════════════════════════════════════
+   STAT GRIDS — the four illuminated hero stats up top
+   ════════════════════════════════════════════════════════════ */
+
+.stat-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.stat-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+@media (max-width: 767.98px) {
+  /* Four stats across at 440px gave ~88px per card — illegible.
+     Fold into 2 × 2 on mobile; the visual rhythm holds. */
+  .stat-grid-4 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .stat-grid-3 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .stat-grid-3 > :first-child { grid-column: 1 / -1; } /* odd one out spans full width */
+}
+
+/* ════════════════════════════════════════════════════════════
    CATALOG — numbered serif rows
    ════════════════════════════════════════════════════════════ */
 
@@ -1841,4 +1863,223 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .theme-toggle-track.is-on .theme-toggle-thumb {
   transform: translateX(20px);
   background: var(--paper);
+}
+
+/* ════════════════════════════════════════════════════════════
+   HISTORY — search bar, month chapters, mobile expandable card
+   ════════════════════════════════════════════════════════════ */
+
+.history-search {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.history-search-label {
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-size: .62rem;
+  letter-spacing: .18em;
+  color: var(--ash);
+  flex-shrink: 0;
+}
+.history-search-input {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: .95rem;
+  min-width: 0;
+}
+.history-search-count {
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .82rem;
+  color: var(--ash);
+  flex-shrink: 0;
+}
+
+.history-month { margin-bottom: 32px; }
+.history-month-title {
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-size: .82rem;
+  letter-spacing: .22em;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule-soft);
+  font-weight: 400;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+}
+.history-month-name {
+  color: var(--rubric);
+  font-variant-numeric: lining-nums;
+}
+.history-month-year {
+  color: var(--ash);
+  font-variant-numeric: lining-nums;
+  font-family: var(--mono);
+  font-size: .68rem;
+  letter-spacing: .06em;
+}
+
+/* Mobile card list */
+.history-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.history-card {
+  border: 1px solid var(--rule-soft);
+  background: var(--paper-warm);
+  overflow: hidden;
+  transition: border-color .2s var(--ease), background .2s var(--ease);
+}
+.history-card.is-expanded {
+  border-color: var(--rubric);
+  background: var(--paper-warm);
+}
+.history-card-head {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 14px 14px 12px;
+  display: grid;
+  grid-template-columns: 48px 1fr 16px;
+  gap: 14px;
+  align-items: center;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background .15s var(--ease);
+  font-family: inherit;
+}
+.history-card-head:active { background: var(--paper-mid); }
+
+.history-card-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  padding: 4px 0;
+  border-right: 1px solid var(--rule-soft);
+  padding-right: 12px;
+  margin-right: -6px;
+}
+.history-card-date-dow {
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-size: .56rem;
+  letter-spacing: .14em;
+  color: var(--rubric);
+  margin-bottom: 4px;
+}
+.history-card-date-day {
+  font-family: var(--mono);
+  font-variant-numeric: oldstyle-nums;
+  font-size: 1.4rem;
+  color: var(--ink);
+  line-height: 1;
+}
+.history-card-date-month {
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .62rem;
+  color: var(--ash);
+  margin-top: 3px;
+}
+
+.history-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.history-card-title {
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.history-card-meta {
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .78rem;
+  color: var(--ash);
+  line-height: 1.3;
+}
+.history-card-rel {
+  font-family: var(--mono);
+  font-size: .62rem;
+  color: var(--ash-light);
+  letter-spacing: .04em;
+  margin-top: 2px;
+}
+.history-card-chev {
+  color: var(--ash);
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  transition: transform .2s var(--ease);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.history-card.is-expanded .history-card-chev { color: var(--rubric); }
+
+.history-card-body-expanded {
+  padding: 4px 14px 16px;
+  border-top: 1px dashed var(--rule-soft);
+  margin-top: 2px;
+  animation: historyCardUnfold .22s var(--ease);
+}
+@keyframes historyCardUnfold {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.history-card-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 10px 0 4px;
+}
+.history-card-exercise {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rule-faint);
+  align-items: baseline;
+}
+.history-card-exercise:last-child { border-bottom: none; }
+.history-card-exercise-num {
+  font-family: var(--mono);
+  font-size: .66rem;
+  color: var(--rubric);
+  font-variant-numeric: oldstyle-nums;
+  text-align: right;
+}
+.history-card-exercise-name {
+  font-family: var(--serif);
+  font-size: .92rem;
+  color: var(--ink);
+  line-height: 1.3;
+}
+
+.history-card-folio-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-size: .62rem;
+  letter-spacing: .18em;
+  color: var(--rubric);
+  text-decoration: none;
+  border-bottom: 1px solid var(--rubric);
+  padding-bottom: 2px;
 }

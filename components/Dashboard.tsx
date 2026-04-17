@@ -207,11 +207,7 @@ export async function Dashboard() {
         glyph="compass"
       />
       <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 16,
-        }}
+        className="stat-grid-4"
       >
         <IlluminatedStat
           label="streak"

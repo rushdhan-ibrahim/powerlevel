@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
 import { Ornament } from "@/components/manuscript/Ornament";
 import { roman } from "@/lib/manuscript";
@@ -42,50 +42,7 @@ export function WorkoutsHistory({ workouts }: { workouts: WorkoutHistoryRow[] })
 
   return (
     <div>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "baseline",
-          gap: 18,
-          marginBottom: 24,
-          paddingBottom: 14,
-          borderBottom: "1px solid var(--rule-soft)",
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "var(--display)",
-            fontVariant: "small-caps",
-            fontSize: ".62rem",
-            letterSpacing: ".18em",
-            color: "var(--ash)",
-            flexShrink: 0,
-          }}
-        >
-          search
-        </span>
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="input"
-          placeholder="filter by workout title or any exercise name…"
-          style={{ flex: 1, padding: "6px 10px", fontSize: ".95rem" }}
-        />
-        {query && (
-          <span
-            style={{
-              fontFamily: "var(--italic)",
-              fontStyle: "italic",
-              fontSize: ".82rem",
-              color: "var(--ash)",
-              flexShrink: 0,
-            }}
-          >
-            {filtered.length} of {workouts.length}
-          </span>
-        )}
-      </div>
+      <SearchBar query={query} onChange={setQuery} totalCount={workouts.length} filteredCount={filtered.length} />
 
       {filtered.length === 0 ? (
         <p
@@ -96,33 +53,10 @@ export function WorkoutsHistory({ workouts }: { workouts: WorkoutHistoryRow[] })
         </p>
       ) : (
         Array.from(grouped.entries()).map(([month, items], gi) => (
-          <div key={month} style={{ marginBottom: 32 }}>
-            <h3
-              style={{
-                fontFamily: "var(--display)",
-                fontVariant: "small-caps",
-                fontSize: ".82rem",
-                letterSpacing: ".22em",
-                color: "var(--rubric)",
-                marginBottom: 14,
-                paddingBottom: 6,
-                borderBottom: "1px solid var(--rule-soft)",
-              }}
-            >
-              <span
-                className="numerals"
-                style={{ color: "var(--rubric)", fontVariant: "lining-nums" }}
-              >
-                {format(new Date(month + "-01"), "MMMM")}
-              </span>{" "}
-              <span
-                className="numerals"
-                style={{ color: "var(--ash)", fontVariant: "lining-nums" }}
-              >
-                {format(new Date(month + "-01"), "yyyy")}
-              </span>
-            </h3>
-            <div className="catalog">
+          <div key={month} className="history-month">
+            <MonthChapter month={month} />
+            {/* Desktop: compact horizontal catalog rows */}
+            <div className="catalog desktop-only">
               {items.map((w, i) => {
                 const indexNum = items.length - i;
                 return (
@@ -165,9 +99,121 @@ export function WorkoutsHistory({ workouts }: { workouts: WorkoutHistoryRow[] })
                 );
               })}
             </div>
+
+            {/* Mobile: expandable cards */}
+            <div className="mobile-only history-card-list">
+              {items.map((w) => (
+                <WorkoutCard key={w.id} w={w} />
+              ))}
+            </div>
+
             {gi < grouped.size - 1 && <Ornament variant="hollow" />}
           </div>
         ))
+      )}
+    </div>
+  );
+}
+
+/* ─── search bar ───────────────────────────────────────────── */
+
+function SearchBar({
+  query,
+  onChange,
+  totalCount,
+  filteredCount,
+}: {
+  query: string;
+  onChange: (q: string) => void;
+  totalCount: number;
+  filteredCount: number;
+}) {
+  return (
+    <div className="history-search">
+      <span className="history-search-label">search</span>
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => onChange(e.target.value)}
+        className="input history-search-input"
+        placeholder="by title or exercise name…"
+        autoCapitalize="off"
+        autoComplete="off"
+        autoCorrect="off"
+      />
+      {query && (
+        <span className="history-search-count">
+          {filteredCount} of {totalCount}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* ─── month chapter opener ────────────────────────────────── */
+
+function MonthChapter({ month }: { month: string }) {
+  const d = new Date(month + "-01");
+  return (
+    <h3 className="history-month-title">
+      <span className="history-month-name">{format(d, "MMMM")}</span>
+      <span className="history-month-year">{format(d, "yyyy")}</span>
+    </h3>
+  );
+}
+
+/* ─── mobile workout card (expandable) ────────────────────── */
+
+function WorkoutCard({ w }: { w: WorkoutHistoryRow }) {
+  const [expanded, setExpanded] = useState(false);
+  const d = new Date(w.date);
+  return (
+    <div className={`history-card ${expanded ? "is-expanded" : ""}`}>
+      <button
+        type="button"
+        onClick={() => setExpanded((e) => !e)}
+        className="history-card-head"
+        aria-expanded={expanded}
+        aria-label={`${w.title ?? "untitled workout"} — tap to ${expanded ? "collapse" : "expand"}`}
+      >
+        <div className="history-card-date">
+          <div className="history-card-date-dow">{format(d, "EEE").toLowerCase()}</div>
+          <div className="history-card-date-day">{format(d, "d")}</div>
+          <div className="history-card-date-month">{format(d, "MMM").toLowerCase()}</div>
+        </div>
+        <div className="history-card-body">
+          <div className="history-card-title">{w.title ?? "untitled workout"}</div>
+          <div className="history-card-meta">
+            {w.exerciseCount} {w.exerciseCount === 1 ? "exercise" : "exercises"} · {w.setCount}{" "}
+            {w.setCount === 1 ? "set" : "sets"} ·{" "}
+            <span className="numerals" style={{ fontStyle: "normal", color: "var(--ink-light)" }}>
+              {w.tonnage.toLocaleString()}
+            </span>{" "}
+            kg
+          </div>
+          <div className="history-card-rel">
+            {formatDistanceToNow(d, { addSuffix: true })}
+          </div>
+        </div>
+        <div className="history-card-chev" aria-hidden="true">
+          {expanded ? "▾" : "▸"}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="history-card-body-expanded">
+          <div className="history-card-exercises">
+            {w.exerciseNames.map((name, i) => (
+              <div key={i} className="history-card-exercise">
+                <span className="history-card-exercise-num">{roman(i + 1).toLowerCase()}</span>
+                <span className="history-card-exercise-name">{name}</span>
+              </div>
+            ))}
+          </div>
+          <Link href={`/workouts/${w.id}`} className="history-card-folio-link">
+            view the full folio →
+          </Link>
+        </div>
       )}
     </div>
   );
