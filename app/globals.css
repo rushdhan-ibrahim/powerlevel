@@ -623,14 +623,15 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 
 .initial {
   /* Sized so the visible ink panel fills most of the span and
-     embeds in the text rather than pushing it away. The viewBox
-     is tight to the panel itself; the cap-star and pendant render
-     via SVG overflow-visible above/below without reserving CSS
-     space the text then has to wrap around. */
+     embeds in the text rather than pushing it away. Cap-star and
+     pendant render via SVG overflow-visible without reserving CSS
+     space. Margins are kept tight so the text cozies up against
+     the ornamental edge — the corner bosses and filigree already
+     provide their own visual breathing room. */
   float: left;
-  width: 92px;
-  height: 94px;
-  margin: 4px 18px 10px 0;
+  width: 88px;
+  height: 90px;
+  margin: 4px 10px 8px 0;
   shape-outside: margin-box;
   display: inline-block;
 }
@@ -642,9 +643,9 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 }
 @media (max-width: 767.98px) {
   .initial {
-    width: 78px;
-    height: 80px;
-    margin: 2px 14px 8px 0;
+    width: 74px;
+    height: 76px;
+    margin: 2px 8px 6px 0;
   }
 }
 
