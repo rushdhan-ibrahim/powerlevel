@@ -16,7 +16,11 @@ dist/
 # database & uploads
 prisma/dev.db
 prisma/dev.db-journal
-uploads/
+# /uploads/ NOT uploads/ — the leading slash anchors the match to the
+# project root, so we keep ignoring the local photo cache without also
+# swallowing app/api/uploads/ (the Next.js route) or anything else
+# whose name happens to include "uploads".
+/uploads/
 
 # supabase cli local state (config.toml at supabase/ root is committed;
 # everything in .supabase/ is machine-specific)
