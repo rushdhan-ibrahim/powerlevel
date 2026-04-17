@@ -28,7 +28,7 @@ import { roman } from "@/lib/manuscript";
 import { consistencyGrid } from "@/lib/insights";
 import { SortableSessionTable } from "@/components/SortableSessionTable";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function ExercisePage({
   params,

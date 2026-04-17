@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ParsedWorkoutSchema } from "@/lib/schema";
@@ -7,6 +8,14 @@ import {
   normalizeForGrouping,
   cleanExerciseName,
 } from "@/lib/exercise_library";
+
+function invalidateAllWorkoutViews() {
+  for (const p of ["/", "/workouts", "/insights", "/ledger", "/totals", "/profile"]) {
+    revalidatePath(p);
+  }
+  revalidatePath("/exercises/[slug]", "page");
+  revalidatePath("/workouts/[id]", "page");
+}
 
 const PatchBody = z.object({
   workout: ParsedWorkoutSchema,
@@ -20,6 +29,7 @@ export async function DELETE(
 ) {
   const { id } = await params;
   await prisma.workout.delete({ where: { id } });
+  invalidateAllWorkoutViews();
   return NextResponse.json({ ok: true });
 }
 
@@ -114,6 +124,7 @@ export async function PATCH(
       });
     });
 
+    invalidateAllWorkoutViews();
     return NextResponse.json({ id });
   } catch (err) {
     console.error("Update workout error:", err);

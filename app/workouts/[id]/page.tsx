@@ -16,7 +16,7 @@ import { SessionNotebook } from "@/components/manuscript/SessionNotebook";
 import { SetTable } from "@/components/SetTable";
 import { roman } from "@/lib/manuscript";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function WorkoutPage({
   params,

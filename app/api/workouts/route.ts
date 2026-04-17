@@ -1,9 +1,25 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ParsedWorkoutSchema } from "@/lib/schema";
 import { findCanonical, normalizeForGrouping, cleanExerciseName } from "@/lib/exercise_library";
 import { reprocessStoredImage, deleteStorageObjects } from "@/lib/image_pipeline";
+
+/**
+ * Drop every cached view that summarises the workout log. Called after
+ * POST / PATCH / DELETE so the next navigation re-renders with fresh
+ * data instead of serving a 60-second-stale snapshot.
+ */
+function invalidateAllWorkoutViews() {
+  for (const p of ["/", "/workouts", "/insights", "/ledger", "/totals", "/profile"]) {
+    revalidatePath(p);
+  }
+  // Every per-exercise page could be affected by a new set — nuke the
+  // whole segment.
+  revalidatePath("/exercises/[slug]", "page");
+  revalidatePath("/workouts/[id]", "page");
+}
 
 export const runtime = "nodejs";
 // Image re-processing (HEIC decode + JPEG resize) can take a moment per
@@ -154,6 +170,7 @@ export async function POST(req: Request) {
       });
     }
 
+    invalidateAllWorkoutViews();
     return NextResponse.json({ id: created.id });
   } catch (err) {
     console.error("Save workout error:", err);

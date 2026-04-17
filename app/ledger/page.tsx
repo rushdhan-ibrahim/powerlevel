@@ -34,7 +34,7 @@ import { LoadChain } from "@/components/manuscript/plates/LoadChain";
 import { ColophonSeal } from "@/components/manuscript/Seal";
 import { roman } from "@/lib/manuscript";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function LedgerPage() {
   const raw = await prisma.workout.findMany({

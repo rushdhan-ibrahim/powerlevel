@@ -6,7 +6,7 @@ import { Headpiece } from "@/components/manuscript/Headpiece";
 import { Vesica } from "@/components/manuscript/plates/Vesica";
 import { PageIncipit } from "@/components/manuscript/PageIncipit";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function TotalsPage() {
   const raw = await prisma.workout.findMany({

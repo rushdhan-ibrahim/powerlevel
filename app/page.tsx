@@ -7,7 +7,7 @@ import { Principle } from "@/components/manuscript/Principle";
 import { Seal } from "@/components/manuscript/Seal";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function Home() {
   const workoutCount = await prisma.workout.count();

@@ -10,7 +10,7 @@ import { ColophonSeal } from "@/components/manuscript/Seal";
 import { InkLineChart } from "@/components/manuscript/charts/InkLineChart";
 import { loadProfile, profileDerived } from "@/lib/profile";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function ProfilePage() {
   const [profile, derivedProfile] = await Promise.all([

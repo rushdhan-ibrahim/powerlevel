@@ -10,7 +10,7 @@ import {
   type WorkoutHistoryRow,
 } from "@/components/WorkoutsHistory";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 async function loadWorkouts() {
   return prisma.workout.findMany({

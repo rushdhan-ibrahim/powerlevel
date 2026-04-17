@@ -30,7 +30,7 @@ import { YearHeatmap } from "@/components/manuscript/plates/YearHeatmap";
 import { format } from "date-fns";
 import { roman } from "@/lib/manuscript";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function InsightsPage() {
   const raw = await prisma.workout.findMany({
