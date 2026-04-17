@@ -27,6 +27,7 @@ import { Chaplet } from "@/components/manuscript/plates/Chaplet";
 import { PilgrimStar } from "@/components/manuscript/plates/PilgrimStar";
 import { Phyllotaxis } from "@/components/manuscript/plates/Phyllotaxis";
 import { YearHeatmap } from "@/components/manuscript/plates/YearHeatmap";
+import { ChapterPager } from "@/components/manuscript/ChapterPager";
 import { format } from "date-fns";
 import { roman } from "@/lib/manuscript";
 
@@ -129,113 +130,96 @@ export default async function InsightsPage() {
 
       <Ornament variant="diamond" />
 
-      <ChapterOpener n="i" title="Records" caption="every PR set in this codex, brightest at the freshest" glyph="rose" />
-      <div className="plate-grid">
-        <Plate
-          numeral="i"
-          title="Records"
-          caption="every PR set, brightest at the freshest point"
-        >
-          <PilgrimStar prs={prs} />
-        </Plate>
-        <Plate
-          numeral="ia"
-          title="PRs per month"
-          caption="how often you broke new ground · last 12 months"
-        >
-          <InkLineChart
-            series={prFrequency}
-            yLabel="PRs"
-            yUnit=""
-            allowZeros
-            height={220}
-            emptyLabel="no PRs to chart yet"
+      <ChapterPager
+        labels={[
+          { n: "i",   title: "Records" },
+          { n: "ii",  title: "Balance & volume" },
+          { n: "iii", title: "Activity over time" },
+          { n: "iv",  title: "Your repertoire" },
+          { n: "v",   title: "All exercises" },
+        ]}
+      >
+        {/* §I Records */}
+        <section>
+          <ChapterOpener n="i" title="Records" caption="every PR set in this codex, brightest at the freshest" glyph="rose" />
+          <div className="plate-grid">
+            <Plate numeral="i" title="Records" caption="every PR set, brightest at the freshest point">
+              <PilgrimStar prs={prs} />
+            </Plate>
+            <Plate numeral="ia" title="PRs per month" caption="how often you broke new ground · last 12 months">
+              <InkLineChart
+                series={prFrequency}
+                yLabel="PRs"
+                yUnit=""
+                allowZeros
+                height={220}
+                emptyLabel="no PRs to chart yet"
+              />
+            </Plate>
+          </div>
+        </section>
+
+        {/* §II Balance & volume */}
+        <section>
+          <ChapterOpener n="ii" title="Balance &amp; volume" caption="working sets by muscle group · weight lifted per week" glyph="rose" />
+          <div className="plate-grid">
+            <Plate numeral="ii" title="Muscle balance" caption="working sets by muscle group · last 28 days">
+              <RoseMuscle data={muscle} />
+            </Plate>
+            <Plate numeral="iii" title="Weekly volume" caption="kg lifted per week · last 24 weeks">
+              <PendulumChoir data={weekly24} />
+            </Plate>
+          </div>
+        </section>
+
+        {/* §III Activity */}
+        <section>
+          <ChapterOpener n="iii" title="Activity over time" caption="every day of the last twenty-six weeks" glyph="hourglass" />
+          <Plate numeral="iv" title="Activity" caption="every day of the last 26 weeks · bead size scales with weight lifted">
+            <MemoryField cells={memoryCells} weeks={26} />
+          </Plate>
+          <Plate numeral="iva" title="Year at a glance" caption="every day of the last 12 months · cell shading scales with weight lifted">
+            <YearHeatmap cells={yearCells} />
+          </Plate>
+        </section>
+
+        {/* §IV Repertoire */}
+        <section>
+          <ChapterOpener n="iv" title="Your repertoire" caption="frequent lifts in motion · the seed grows" glyph="chaplet" />
+          <div className="plate-grid">
+            <Plate numeral="v" title="Frequent lifts" caption="hollow beads are cold; larger beads mark milestones">
+              <Chaplet lifts={liftsForChaplet} />
+            </Plate>
+            <Plate numeral="vi" title="Growth" caption={`${workouts.length} workouts arranged by φ`}>
+              <Phyllotaxis count={workouts.length} />
+            </Plate>
+          </div>
+        </section>
+
+        {/* §V All exercises */}
+        <section>
+          <ChapterOpener n="v" title="All exercises" caption="every lift the codex has read, ranked by frequency" glyph="seed" />
+          <p className="body-prose">
+            Every exercise Powerlevel has seen, ranked by how often you do it. Each entry
+            opens to a full history of that lift &mdash; orbital field, progression chain,
+            session table.
+          </p>
+          <Catalog
+            entries={topExercises.map((ex, i) => ({
+              num: roman(i + 1).toLowerCase(),
+              name: ex.displayName,
+              desc: `${ex.sessions} session${ex.sessions === 1 ? "" : "s"} · last on ${format(ex.lastDate, "MMM d")}`,
+              numerals:
+                ex.bestE1RM > 0 ? (
+                  <span className="rubric numerals">{ex.bestE1RM} kg</span>
+                ) : (
+                  <span className="numerals">—</span>
+                ),
+              href: `/exercises/${encodeURIComponent(ex.normalizedName)}`,
+            }))}
           />
-        </Plate>
-      </div>
-
-      <Ornament variant="hollow" />
-
-      <ChapterOpener n="ii" title="Balance &amp; volume" caption="working sets by muscle group · weight lifted per week" glyph="rose" />
-      <div className="plate-grid">
-        <Plate
-          numeral="ii"
-          title="Muscle balance"
-          caption="working sets by muscle group · last 28 days"
-        >
-          <RoseMuscle data={muscle} />
-        </Plate>
-        <Plate
-          numeral="iii"
-          title="Weekly volume"
-          caption="kg lifted per week · last 24 weeks"
-        >
-          <PendulumChoir data={weekly24} />
-        </Plate>
-      </div>
-
-      <Ornament variant="star" />
-
-      <ChapterOpener n="iii" title="Activity over time" caption="every day of the last twenty-six weeks" glyph="hourglass" />
-      <Plate
-        numeral="iv"
-        title="Activity"
-        caption="every day of the last 26 weeks · bead size scales with weight lifted"
-      >
-        <MemoryField cells={memoryCells} weeks={26} />
-      </Plate>
-
-      <Plate
-        numeral="iva"
-        title="Year at a glance"
-        caption="every day of the last 12 months · cell shading scales with weight lifted"
-      >
-        <YearHeatmap cells={yearCells} />
-      </Plate>
-
-      <Ornament variant="hollow" />
-
-      <ChapterOpener n="iv" title="Your repertoire" caption="frequent lifts in motion · the seed grows" glyph="chaplet" />
-      <div className="plate-grid">
-        <Plate
-          numeral="v"
-          title="Frequent lifts"
-          caption="hollow beads are cold; larger beads mark milestones"
-        >
-          <Chaplet lifts={liftsForChaplet} />
-        </Plate>
-        <Plate
-          numeral="vi"
-          title="Growth"
-          caption={`${workouts.length} workouts arranged by φ`}
-        >
-          <Phyllotaxis count={workouts.length} />
-        </Plate>
-      </div>
-
-      <Ornament variant="trinity" />
-
-      <ChapterOpener n="v" title="All exercises" caption="every lift the codex has read, ranked by frequency" glyph="seed" />
-      <p className="body-prose">
-        Every exercise Powerlevel has seen, ranked by how often you do it. Each entry
-        opens to a full history of that lift &mdash; orbital field, progression chain,
-        session table.
-      </p>
-
-      <Catalog
-        entries={topExercises.map((ex, i) => ({
-          num: roman(i + 1).toLowerCase(),
-          name: ex.displayName,
-          desc: `${ex.sessions} session${ex.sessions === 1 ? "" : "s"} · last on ${format(ex.lastDate, "MMM d")}`,
-          numerals:
-            ex.bestE1RM > 0 ? (
-              <span className="rubric numerals">{ex.bestE1RM} kg</span>
-            ) : (
-              <span className="numerals">—</span>
-            ),
-          href: `/exercises/${encodeURIComponent(ex.normalizedName)}`,
-        }))}
-      />
+        </section>
+      </ChapterPager>
 
       <Ornament variant="diamond" />
 

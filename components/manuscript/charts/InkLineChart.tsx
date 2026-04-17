@@ -120,13 +120,14 @@ export function InkLineChart({
   );
   const current = normalizedPoints[normalizedPoints.length - 1];
 
-  // Map an SVG-x value back to the nearest data-point index.
-  const handleMove = (evt: React.MouseEvent<SVGRectElement>) => {
+  // Map an SVG-x value back to the nearest data-point index. Used
+  // by both the desktop hover path and the mobile thumb-scrub.
+  const updateFromClient = (clientX: number, clientY: number) => {
     const svg = svgRef.current;
     if (!svg) return;
     const pt = svg.createSVGPoint();
-    pt.x = evt.clientX;
-    pt.y = evt.clientY;
+    pt.x = clientX;
+    pt.y = clientY;
     const ctm = svg.getScreenCTM();
     if (!ctm) return;
     const local = pt.matrixTransform(ctm.inverse());
@@ -140,6 +141,28 @@ export function InkLineChart({
       }
     }
     setHoverIdx(bestIdx);
+  };
+  const handleMove = (evt: React.MouseEvent<SVGRectElement>) => {
+    updateFromClient(evt.clientX, evt.clientY);
+  };
+  // Pointer events give us a single code path for mouse + touch +
+  // pen. On touch devices onPointerMove only fires while a finger
+  // is down — which IS the "thumb-scrub" interaction we want.
+  const handlePointerDown = (evt: React.PointerEvent<SVGRectElement>) => {
+    (evt.currentTarget as Element).setPointerCapture?.(evt.pointerId);
+    updateFromClient(evt.clientX, evt.clientY);
+  };
+  const handlePointerMove = (evt: React.PointerEvent<SVGRectElement>) => {
+    // On mouse pointer type we already update via onMouseMove; only
+    // handle pen / touch here so we don't fight the hover path.
+    if (evt.pointerType === "mouse") return;
+    updateFromClient(evt.clientX, evt.clientY);
+  };
+  const handlePointerEnd = (evt: React.PointerEvent<SVGRectElement>) => {
+    try { (evt.currentTarget as Element).releasePointerCapture?.(evt.pointerId); } catch {}
+    // Keep the pinned readout visible after a touch ends so users
+    // can look at it — the next tap anywhere else clears it.
+    if (evt.pointerType === "mouse") setHoverIdx(null);
   };
 
   const hovered = hoverIdx != null ? normalizedPoints[hoverIdx] : null;
@@ -385,15 +408,24 @@ export function InkLineChart({
         </g>
       )}
 
-      {/* INTERACTION CAPTURE — must be last so it sits on top of everything */}
+      {/* INTERACTION CAPTURE — must be last so it sits on top of
+          everything. Mouse events drive the desktop hover path;
+          pointer events drive the mobile thumb-scrub. touch-action
+          none on the rect stops iOS from hijacking the horizontal
+          drag for scroll. */}
       <rect
         x={PAD_L}
         y={PAD_T}
         width={usableW}
         height={usableH}
         fill="transparent"
+        style={{ touchAction: "none" }}
         onMouseMove={handleMove}
         onMouseLeave={() => setHoverIdx(null)}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onPointerCancel={handlePointerEnd}
       />
     </svg>
   );

@@ -2188,3 +2188,98 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   display: flex;
   justify-content: center;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   CHAPTER PAGER — horizontal swipe on mobile, vertical on desktop
+   ════════════════════════════════════════════════════════════════ */
+
+.chapter-pager {
+  position: relative;
+}
+.chapter-pager-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* Desktop: vertical stack, no snap, no indicator */
+@media (min-width: 768px) {
+  .chapter-pager-indicator { display: none; }
+}
+
+/* Mobile: horizontal paged reading */
+@media (max-width: 767.98px) {
+  .chapter-pager {
+    /* Escape the folio's 18px horizontal padding so slides are
+       true viewport-wide. Indicator sits inside the folio padding. */
+    margin: 0 -18px;
+  }
+  .chapter-pager-indicator {
+    position: sticky;
+    top: calc(var(--safe-top) + 52px); /* under the mobile title bar */
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 18px 10px;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: saturate(150%) blur(12px);
+    -webkit-backdrop-filter: saturate(150%) blur(12px);
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .chapter-pager-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .chapter-pager-dot {
+    background: transparent;
+    border: 1px solid var(--ash-light);
+    border-radius: 50%;
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    cursor: pointer;
+    transition: background .2s var(--ease), border-color .2s var(--ease),
+                transform .2s var(--ease);
+  }
+  .chapter-pager-dot.is-active {
+    background: var(--rubric);
+    border-color: var(--rubric);
+    transform: scale(1.25);
+  }
+  .chapter-pager-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-family: var(--display);
+    font-variant: small-caps;
+    font-size: .6rem;
+    letter-spacing: .18em;
+  }
+  .chapter-pager-label-n     { color: var(--rubric); }
+  .chapter-pager-label-sep   { color: var(--ash-light); }
+  .chapter-pager-label-title { color: var(--ink-light); }
+
+  .chapter-pager-scroll {
+    flex-direction: row;
+    gap: 0;
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* Pull content down so it clears the sticky indicator's
+       shadow/divider. */
+    padding-top: 6px;
+  }
+  .chapter-pager-scroll::-webkit-scrollbar { display: none; }
+  .chapter-slide {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+    padding: 0 18px 48px;
+    min-width: 0;
+  }
+}
