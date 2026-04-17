@@ -98,10 +98,13 @@ export const viewport: Viewport = {
   // viewport-fit=cover lets content extend into the notch / home
   // indicator areas; env(safe-area-inset-*) keeps the important bits
   // (tab bar, title bar) clear of the hardware features.
+  //
+  // We intentionally omit maximumScale / userScalable — the ChartLightbox
+  // needs native pinch-zoom to work, and iOS disables that whenever
+  // maximum-scale is pinned. Elsewhere in the app, touch-action at the
+  // element level prevents accidental zooming on interactive surfaces.
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 

@@ -414,6 +414,7 @@ export function InkLineChart({
           none on the rect stops iOS from hijacking the horizontal
           drag for scroll. */}
       <rect
+        className="chart-scrub-rect"
         x={PAD_L}
         y={PAD_T}
         width={usableW}

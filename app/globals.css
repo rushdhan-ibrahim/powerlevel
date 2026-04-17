@@ -2344,25 +2344,35 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .chart-lightbox-scrim {
   position: fixed;
   inset: 0;
+  /* Lock to the dynamic viewport so rotation between portrait and
+     landscape doesn't leave a stale white bar at the top. */
+  height: 100dvh;
   z-index: 80;
   background: color-mix(in srgb, #000 65%, transparent);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: calc(var(--safe-top) + 18px);
-  padding-bottom: calc(var(--safe-bottom) + 18px);
+  padding: calc(var(--safe-top) + 14px) 14px calc(var(--safe-bottom) + 14px);
   animation: chartScrim .18s var(--ease);
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .chart-lightbox-scrim {
+    padding: calc(var(--safe-top) + 6px) 12px calc(var(--safe-bottom) + 6px);
+  }
 }
 @keyframes chartScrim {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 .chart-lightbox-surface {
-  width: 96vw;
+  width: 100%;
   max-width: 1000px;
-  max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 36px);
+  /* Use dynamic viewport units so rotation updates the max-height
+     immediately. The scrim's padding already accounts for safe insets,
+     so we just subtract the padding here. */
+  max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 28px);
   background: var(--paper);
   border: 1px solid var(--rubric);
   border-radius: 6px;
@@ -2371,6 +2381,11 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   flex-direction: column;
   overflow: hidden;
   animation: chartRise .26s var(--ease);
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .chart-lightbox-surface {
+    max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 12px);
+  }
 }
 @keyframes chartRise {
   from { opacity: 0; transform: translateY(8px) scale(.98); }
@@ -2418,13 +2433,15 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .chart-lightbox-close:active { transform: scale(.94); }
 
 /* Chart inside — large, scrollable, pinch-zoomable. iOS handles
-   pinch natively via touch-action: pinch-zoom on the container. */
+   pinch natively via touch-action: pan + pinch-zoom on the container
+   and the chart SVG. We also disable the chart's scrub-capture rect
+   so it can't swallow the two-finger gesture. */
 .chart-lightbox-chart {
   flex: 1;
   padding: 16px 14px;
   overflow: auto;
   -webkit-overflow-scrolling: touch;
-  touch-action: pinch-zoom;
+  touch-action: pan-x pan-y pinch-zoom;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2438,6 +2455,12 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   width: 100%;
   height: auto;
   max-height: none;
+  /* Override the chart's inline touch-action:none so iOS can pinch. */
+  touch-action: pan-x pan-y pinch-zoom !important;
+}
+.chart-lightbox-chart .chart-scrub-rect {
+  /* Disable drag-scrub inside the lightbox — pinch/pan beats it. */
+  pointer-events: none !important;
 }
 
 .chart-lightbox-hint {
