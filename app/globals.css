@@ -145,7 +145,14 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: sm
     padding: 0 18px calc(var(--safe-bottom) + 24px) !important;
     box-shadow: none !important;
     min-height: 100vh;
-    background: var(--paper);
+    /* !important necessary because the base .folio rule (later in
+       this file) has two radial-gradient highlights that stack
+       on top of var(--paper) to float the page on a desk. Those
+       are near-invisible white-on-cream in daylight but become
+       very visible bright patches on candlelight's walnut paper,
+       migrating diagonally top-left → bottom-right as you scroll.
+       Plain var(--paper) on mobile. */
+    background: var(--paper) !important;
   }
   /* Atmospheric flourishes that only read well on a boxed desktop
      page — on mobile they leak as gradient bands. Kill all three:
