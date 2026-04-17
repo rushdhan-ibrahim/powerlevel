@@ -118,14 +118,20 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: sm
      the Folio's page-number + colophon dressing. */
   .gutter-furniture { display: none !important; }
   html, body { overflow-x: hidden; }
-  html {
-    /* Paint the html element with paper too so that iOS's status-bar
-       + Dynamic-Island safe area shows the manuscript page, not a
-       white default. Matters when viewport-fit=cover + status-bar
-       style is black-translucent. */
+  /* Paint the html element with paper too so that iOS's status-bar
+     + Dynamic-Island safe area shows the manuscript page, not a
+     white default. Matters when viewport-fit=cover + status-bar
+     style is black-translucent. The :root[data-theme=candlelight]
+     forms exist because that selector has HIGHER specificity than
+     a plain `body` — without these explicit overrides, the desktop
+     candlelight body gradient was leaking through at phone width
+     and reading as a light strip under the Dynamic Island. */
+  html,
+  :root[data-theme="candlelight"] html {
     background: var(--paper) !important;
   }
-  body {
+  body,
+  :root[data-theme="candlelight"] body {
     background: var(--paper) !important;
     background-attachment: scroll !important;
     min-height: 100dvh;
@@ -1461,9 +1467,19 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
    ════════════════════════════════════════════════════════════════ */
 
 .mobile-titlebar {
+  /* Stuck at top of viewport, breaking OUT of the folio's 18px
+     horizontal padding via negative margins so the bar is
+     truly edge-to-edge — no horizontal discontinuity with the
+     iOS status-bar behind it. Fully opaque paper background so
+     iOS's status-bar color (which can't be live-tinted in an
+     installed PWA) is completely covered by our own colour; the
+     wrap-around-the-Dynamic-Island effect then comes from US, not
+     from whatever theme-color meta iOS happened to cache at install. */
   position: sticky;
   top: 0;
   z-index: 40;
+  margin-left: -18px;
+  margin-right: -18px;
   padding-top: calc(var(--safe-top) + 12px);
   padding-bottom: 10px;
   padding-left: calc(var(--safe-left) + 18px);
@@ -1471,9 +1487,7 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  background: color-mix(in srgb, var(--paper) 88%, transparent);
-  backdrop-filter: saturate(150%) blur(12px);
-  -webkit-backdrop-filter: saturate(150%) blur(12px);
+  background: var(--paper);
   border-bottom: 1px solid var(--rule-soft);
 }
 .mobile-titlebar-brand {
