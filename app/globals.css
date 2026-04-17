@@ -622,16 +622,14 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
    ════════════════════════════════════════════════════════════ */
 
 .initial {
-  /* Sized so the visible ink panel fills most of the span and
-     embeds in the text rather than pushing it away. Cap-star and
-     pendant render via SVG overflow-visible without reserving CSS
-     space. Margins are kept tight so the text cozies up against
-     the ornamental edge — the corner bosses and filigree already
-     provide their own visual breathing room. */
+  /* Viewbox is tight to the panel + scrolled foot; the cap-star
+     renders via SVG overflow-visible above. Margins are kept tiny
+     so prose that wraps beneath the drop-cap resumes almost
+     flush with the panel's bottom edge. */
   float: left;
   width: 88px;
-  height: 90px;
-  margin: 4px 10px 8px 0;
+  height: 86px;
+  margin: 4px 10px 4px 0;
   shape-outside: margin-box;
   display: inline-block;
 }
@@ -644,8 +642,8 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 @media (max-width: 767.98px) {
   .initial {
     width: 74px;
-    height: 76px;
-    margin: 2px 8px 6px 0;
+    height: 72px;
+    margin: 2px 8px 2px 0;
   }
 }
 

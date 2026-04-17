@@ -75,7 +75,7 @@ export function Initial({ letter, seed, size }: Props) {
   return (
     <span className="initial" style={sizeStyle}>
       <svg
-        viewBox="-8 -10 80 82"
+        viewBox="-8 -10 80 78"
         width="100%"
         height="100%"
         aria-hidden="true"
@@ -297,8 +297,10 @@ export function Initial({ letter, seed, size }: Props) {
           />
         ))}
 
-        {/* ─── SCROLLED FOOT — tightened closer to the panel so the
-             hanging pendant stays within the Initial's visual box ── */}
+        {/* ─── SCROLLED FOOT — the bow + center bead terminate the
+             panel. The hanging pendant belongs to the standalone
+             DayBadge; a drop-cap embedded in prose can't afford the
+             extra vertical space below the ornament. */}
         <g>
           <path d="M10,67 Q22,70 32,68 Q42,70 54,67" fill="none" stroke="var(--rubric)" strokeWidth=".55" opacity=".75" />
           <path d="M16,67 Q20,68 23,68" fill="none" stroke="var(--rubric)" strokeWidth=".3" opacity=".55" />
@@ -309,16 +311,6 @@ export function Initial({ letter, seed, size }: Props) {
           <circle cx="40" cy="69" r=".55" fill="var(--rubric)" opacity=".65" />
           <circle cx="19" cy="69.3" r=".35" fill="var(--rubric)" opacity=".45" />
           <circle cx="45" cy="69.3" r=".35" fill="var(--rubric)" opacity=".45" />
-          {/* Pendant — shorter so it stays within the viewBox */}
-          <g
-            style={{
-              animation: "pendantBreathe 13s ease-in-out infinite",
-              transformOrigin: "32px 68.8px",
-            }}
-          >
-            <line x1="32" y1="70" x2="32" y2="73" stroke="var(--rubric)" strokeWidth=".4" opacity=".7" />
-            <polygon points="32,73 33.6,75 32,77 30.4,75" fill="var(--rubric)" opacity=".85" />
-          </g>
         </g>
       </svg>
     </span>
