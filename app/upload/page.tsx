@@ -34,13 +34,18 @@ export default function UploadPage() {
 
   // Track in-flight AbortControllers per queue item id so cancellation works.
   const abortersRef = useRef<Map<string, AbortController>>(new Map());
+  // Separate ref for the single-upload path so a mobile user can tap
+  // "cancel" on the loading screen.
+  const singleAbortRef = useRef<AbortController | null>(null);
 
   /* ─── single-file fast path ──────────────────────────────── */
   const parseSingle = async (file: File) => {
     setMode("single-loading");
     setSingleError(null);
+    const controller = new AbortController();
+    singleAbortRef.current = controller;
     try {
-      const result = await parseWorkout([file]);
+      const result = await parseWorkout([file], { signal: controller.signal });
       setSingleResult({
         workout: result.workout,
         imagePaths: result.imagePaths,
@@ -49,9 +54,20 @@ export default function UploadPage() {
       });
       setMode("single-review");
     } catch (e) {
-      setSingleError((e as Error).message);
+      const aborted =
+        (e as Error).name === "AbortError" ||
+        /aborted/i.test((e as Error).message ?? "");
+      if (!aborted) setSingleError((e as Error).message);
       setMode("idle");
+    } finally {
+      singleAbortRef.current = null;
     }
+  };
+
+  const cancelSingleParse = () => {
+    singleAbortRef.current?.abort();
+    singleAbortRef.current = null;
+    setMode("idle");
   };
 
   /* ─── multi-file staging path ────────────────────────────── */
@@ -307,7 +323,27 @@ export default function UploadPage() {
       <Ornament variant="hollow" />
 
       {staged.files.length === 0 ? (
-        <UploadZone onFiles={onFiles} isLoading={mode === "single-loading"} />
+        <>
+          <UploadZone onFiles={onFiles} isLoading={mode === "single-loading"} />
+          {mode === "single-loading" && (
+            <div style={{ textAlign: "center", marginTop: 18 }}>
+              <button
+                type="button"
+                onClick={cancelSingleParse}
+                className="btn btn-ghost"
+                style={{ minWidth: 160 }}
+              >
+                cancel
+              </button>
+              <div
+                className="marginalia"
+                style={{ marginTop: 10, lineHeight: 1.5, maxWidth: 360, margin: "10px auto 0" }}
+              >
+                keep this tab in the foreground — mobile browsers suspend parsing when you switch apps
+              </div>
+            </div>
+          )}
+        </>
       ) : (
         <BulkStaging
           files={staged.files}

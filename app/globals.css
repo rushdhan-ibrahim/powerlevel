@@ -118,10 +118,16 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: sm
      the Folio's page-number + colophon dressing. */
   .gutter-furniture { display: none !important; }
   html, body { overflow-x: hidden; }
-  body {
-    /* Plain paper background on mobile; no dark gradient behind
-       the page since the page already fills the screen. */
+  html {
+    /* Paint the html element with paper too so that iOS's status-bar
+       + Dynamic-Island safe area shows the manuscript page, not a
+       white default. Matters when viewport-fit=cover + status-bar
+       style is black-translucent. */
     background: var(--paper);
+  }
+  body {
+    background: var(--paper);
+    min-height: 100dvh;
   }
   /* The desktop Folio floats a boxed page with generous padding
      and shadow. On mobile the Folio IS the screen: edge-to-edge,
@@ -134,7 +140,12 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: sm
     min-height: 100vh;
     background: var(--paper);
   }
-  .folio::before { opacity: .1; }
+  /* The grain overlay (.folio::before) and the ghost-code scroll
+     were both designed for desktop — at phone width the ghost-code
+     column reads as a muddy vertical smudge, and the multiply-blend
+     grain over candlelight paper gets splotchy. Quiet both. */
+  .folio::before { display: none; }
+  .folio-ghost   { display: none !important; }
 }
 
 /* Common utility: respect the iPhone's home indicator + Dynamic

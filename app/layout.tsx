@@ -72,7 +72,11 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Powerlevel",
-    statusBarStyle: "default",
+    // black-translucent makes the iOS status bar transparent and lets
+    // OUR page background paint the area around the Dynamic Island.
+    // Without this the status bar is opaque white, which reads as a
+    // disconnected strip above the manuscript.
+    statusBarStyle: "black-translucent",
   },
   icons: {
     icon: [
