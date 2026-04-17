@@ -72,7 +72,11 @@ export async function reprocessStoredImage(
     .jpeg({ quality: TARGET_QUALITY, mozjpeg: true })
     .toBuffer();
 
-  // 4) upload fresh object under a .jpg name
+  // 4) upload fresh object under a .jpg name. We DO NOT delete the
+  //    original here: the caller is responsible for committing the DB
+  //    swap first and only then removing the now-orphaned original. A
+  //    crash between "upload new" and "delete old" only leaves a new
+  //    orphan (reaped by the orphan sweeper), never a broken DB ref.
   const newKey = `${Date.now()}-${randomUUID().slice(0, 8)}.jpg`;
   const { error: upErr } = await admin.storage
     .from(STORAGE_BUCKET)
@@ -82,18 +86,6 @@ export async function reprocessStoredImage(
     });
   if (upErr) {
     throw new Error(`reupload failed: ${upErr.message}`);
-  }
-
-  // 5) delete the original. Best-effort — the workout save succeeded,
-  //    so a leftover orphan is a cost, not a correctness problem; the
-  //    orphan sweeper will pick it up on its next pass.
-  const { error: rmErr } = await admin.storage
-    .from(STORAGE_BUCKET)
-    .remove([oldKey]);
-  if (rmErr) {
-    console.warn(
-      `[image-pipeline] could not remove ${oldKey}: ${rmErr.message}`,
-    );
   }
 
   return {

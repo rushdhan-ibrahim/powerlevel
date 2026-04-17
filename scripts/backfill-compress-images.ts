@@ -13,7 +13,7 @@
  *   npx tsx scripts/backfill-compress-images.ts
  */
 import { PrismaClient } from "@prisma/client";
-import { reprocessStoredImage } from "@/lib/image_pipeline";
+import { reprocessStoredImage, deleteStorageObjects } from "@/lib/image_pipeline";
 
 async function main() {
   const prisma = new PrismaClient();
@@ -57,30 +57,58 @@ async function main() {
     }
   }
 
-  console.log("\n• updating DB references …");
-  // Update Workout.imagePath in batches
+  console.log("\n• updating DB references (with retry on transient pooler drops) …");
+
+  // Wrap every DB write in a retry loop: the Supabase Postgres pooler
+  // drops idle connections occasionally, and a mid-flight drop shouldn't
+  // turn a 15-minute image job into a data-consistency incident.
+  const withRetry = async <T>(fn: () => Promise<T>, label: string, max = 5): Promise<T> => {
+    let err: unknown;
+    for (let i = 0; i < max; i++) {
+      try {
+        return await fn();
+      } catch (e) {
+        err = e;
+        const wait = 500 * (i + 1);
+        console.warn(`    retry ${label} (${i + 1}/${max}) after ${wait}ms — ${(e as Error).message}`);
+        await new Promise((r) => setTimeout(r, wait));
+      }
+    }
+    throw err;
+  };
+
   for (const w of workouts) {
     if (w.imagePath && rewrite.has(w.imagePath)) {
-      await prisma.workout.update({
-        where: { id: w.id },
-        data: { imagePath: rewrite.get(w.imagePath)! },
-      });
+      await withRetry(
+        () =>
+          prisma.workout.update({
+            where: { id: w.id },
+            data: { imagePath: rewrite.get(w.imagePath!)! },
+          }),
+        `workout ${w.id}`,
+      );
     }
   }
   for (const p of pages) {
     if (rewrite.has(p.imagePath)) {
-      await prisma.workoutPage.update({
-        where: { id: p.id },
-        data: { imagePath: rewrite.get(p.imagePath)! },
-      });
+      await withRetry(
+        () =>
+          prisma.workoutPage.update({
+            where: { id: p.id },
+            data: { imagePath: rewrite.get(p.imagePath)! },
+          }),
+        `page ${p.id}`,
+      );
     }
   }
 
+  console.log("\n• deleting originals now that every DB ref has been swapped …");
+  const origsToDelete = Array.from(rewrite.keys());
+  const del = await deleteStorageObjects(origsToDelete);
+  console.log(`  deleted ${del.deleted} originals (${del.failed.length} failed)`);
+
   console.log(
     `\n✓ reprocessed ${rewrite.size}/${uniquePaths.size}, saved ${formatKB(savedBytes)}, failed ${failed}`,
-  );
-  console.log(
-    "  Run /api/admin/sweep-orphans (POST) to delete the now-unreferenced originals.",
   );
   await prisma.$disconnect();
 }

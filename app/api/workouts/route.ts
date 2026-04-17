@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { ParsedWorkoutSchema } from "@/lib/schema";
 import { findCanonical, normalizeForGrouping, cleanExerciseName } from "@/lib/exercise_library";
-import { reprocessStoredImage } from "@/lib/image_pipeline";
+import { reprocessStoredImage, deleteStorageObjects } from "@/lib/image_pipeline";
 
 export const runtime = "nodejs";
 // Image re-processing (HEIC decode + JPEG resize) can take a moment per
@@ -48,15 +48,17 @@ export async function POST(req: Request) {
         : [];
 
     // Hygiene pass: for every source image the review stage was looking
-    // at, produce a compressed JPEG and swap the paths to the new objects
-    // BEFORE writing the row. That way the DB never references an object
-    // that will soon be deleted, and a failure here rolls back cleanly
-    // (we haven't created the workout yet).
+    // at, upload a compressed JPEG and point the new workout row at the
+    // compressed version. Originals are kept in Storage until AFTER the
+    // DB insert commits — if this throws or the insert fails, the new
+    // objects become orphans (reaped later) and no data pointer is lost.
     const processedPaths: string[] = [];
+    const oldPathsToRetire: string[] = [];
     for (const p of rawPaths) {
       try {
         const r = await reprocessStoredImage(p);
         processedPaths.push(r.newRelativePath);
+        oldPathsToRetire.push(`uploads/${r.oldStorageKey}`);
       } catch (e) {
         console.warn(`[save] image pipeline failed for ${p}: ${(e as Error).message} — keeping original`);
         processedPaths.push(p);
@@ -135,6 +137,14 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    // Commit succeeded — NOW retire the originals. If this best-effort
+    // delete flakes, the orphan sweeper will get them later.
+    if (oldPathsToRetire.length > 0) {
+      deleteStorageObjects(oldPathsToRetire).catch((e) => {
+        console.warn(`[save] old-image cleanup failed: ${(e as Error).message}`);
+      });
+    }
 
     return NextResponse.json({ id: created.id });
   } catch (err) {
