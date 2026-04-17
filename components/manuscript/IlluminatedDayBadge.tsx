@@ -1,15 +1,35 @@
 "use client";
 
 /**
- * A miniature illuminated day-marker. Echoes the Initial's vocabulary —
- * corner bosses, crosshatched background, rubric octagram, pediment and
- * scrolled foot — at a scale that fits inside the history card's left
- * column. The day numeral is the illuminated capital; the weekday sits
- * above it in a small rubric inscription band, the month below.
+ * A miniature illuminated day-marker. Echoes the Initial's vocabulary
+ * at a scale that fits inside the history card's left column — a
+ * proper manuscript tablet, not a typographic stack.
  *
- * Stays monochrome rubric + ink + paper to match the rest of the app;
- * no vines or foliage. Density comes from layered hairline frames,
- * pattern fills, and filigree — not from colour variety.
+ * Layout (top → bottom):
+ *   CAP-STAR      ◆  a tiny eight-point rose crowning the pediment
+ *   PEDIMENT     ╱╲  tiered triangle on a double rule flanked by
+ *                     concentric-ring bosses and outward taper dots
+ *   OUTER FRAME  ▣▣  four nested rubric frames: main hairline, inner
+ *                     hairline, dashed, plus a dot-chain on each edge
+ *   MID-EDGE     ✦  small rubric diamond at the top-centre, bottom-
+ *                     centre, left-middle and right-middle of the frame
+ *   CORNERS         concentric-ring bosses with 4-point rubric stars,
+ *                     plus filigree tails curling inward
+ *   INNER FILIGREE  triple-arc acanthus curls in each inner corner
+ *   WEEKDAY BAND    small-caps rubric between hairline rules with
+ *                     diamond markers AND small scroll terminators
+ *   OCTAGRAM       breathing 8-point star behind the numeral, with
+ *                     an outer dotted ring studded with four dots
+ *   NUMERAL         CINZEL DECORATIVE 28px, rubric-red, with multiple
+ *                     paper-coloured gilt glints jittered by a seed
+ *   MONTH BAND      italic ash between hairline rules
+ *   FOOT            twin-arc scrolled flourish with central boss plus
+ *                     a pendant / tassel hanging below
+ *
+ * Stays monochrome rubric + ink + paper. Density comes from layered
+ * hairlines, repeated small motifs (dot chains, filigree), and
+ * deliberate architectural elements (cap-star, mid-edge diamonds,
+ * pendant) — not from colour variety.
  */
 
 import { mulberry32, pointRing } from "@/lib/manuscript";
@@ -35,89 +55,167 @@ export function IlluminatedDayBadge({
   const hatchId = `day-hatch-${base}`;
   const hatchId2 = `day-hatch2-${base}`;
 
+  // Dot-chain generator — emits evenly spaced rubric circles along an edge.
+  const dotChain = (x1: number, y1: number, x2: number, y2: number, n: number, r = 0.35, op = 0.45) => {
+    const out = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      out.push(
+        <circle
+          key={`${x1}-${y1}-${i}`}
+          cx={x1 + (x2 - x1) * t}
+          cy={y1 + (y2 - y1) * t}
+          r={r}
+          fill="var(--rubric)"
+          opacity={op}
+        />,
+      );
+    }
+    return out;
+  };
+
   return (
     <svg
-      viewBox="-6 -14 76 110"
-      width="62"
-      height="86"
+      viewBox="-8 -22 100 150"
+      width="86"
+      height="128"
       aria-hidden="true"
       style={{ overflow: "visible", display: "block" }}
     >
       <defs>
-        {/* Two-directional crosshatch for the panel background — very
-            faint, but enough to keep the paper from feeling naked
-            inside the frame. */}
+        {/* Two-directional crosshatch — faint, keeps the paper from
+            feeling naked inside the frame. */}
         <pattern id={hatchId} width="3.5" height="3.5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="3.5" stroke="var(--rubric)" strokeWidth=".25" opacity=".12" />
+          <line x1="0" y1="0" x2="0" y2="3.5" stroke="var(--rubric)" strokeWidth=".22" opacity=".11" />
         </pattern>
         <pattern id={hatchId2} width="3.5" height="3.5" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
-          <line x1="0" y1="0" x2="0" y2="3.5" stroke="var(--rubric)" strokeWidth=".2" opacity=".08" />
+          <line x1="0" y1="0" x2="0" y2="3.5" stroke="var(--rubric)" strokeWidth=".18" opacity=".08" />
         </pattern>
       </defs>
 
-      {/* ─── PEDIMENT — an architectural rubric cap ─────────────── */}
+      {/* ─── CAP-STAR — the crown above everything ────────────────
+           A tiny eight-point rose at the very top; lifts the eye
+           into the ornament before the pediment resolves into base. */}
+      <g style={{ animation: "sealBreathe 11s ease-in-out infinite", transformOrigin: "42px -20px" }}>
+        <polygon points={pointRing(42, -20, 2.4, 1, 8)} fill="var(--rubric)" opacity=".88" />
+        <circle cx="42" cy="-20" r=".7" fill="var(--paper-warm)" />
+      </g>
+      {/* Two tiny flourish curls rising from the star */}
+      <path d="M38.5,-19 Q36,-17 36,-14" stroke="var(--rubric)" strokeWidth=".25" fill="none" opacity=".5" strokeLinecap="round" />
+      <path d="M45.5,-19 Q48,-17 48,-14" stroke="var(--rubric)" strokeWidth=".25" fill="none" opacity=".5" strokeLinecap="round" />
+
+      {/* ─── PEDIMENT — architectural rubric cap ────────────────── */}
       <g>
-        {/* Central filigree: three-tiered triangle, denser than a
-            plain v-notch, with side runners extending outwards */}
-        <polygon points="29,-12 32,-9 35,-12" fill="var(--rubric)" opacity=".95" />
-        <polygon points="30.2,-8.5 32,-7 33.8,-8.5" fill="var(--rubric)" opacity=".75" />
-        <line x1="14" y1="-5" x2="50" y2="-5" stroke="var(--rubric)" strokeWidth=".55" opacity=".7" />
-        <line x1="18" y1="-3.5" x2="46" y2="-3.5" stroke="var(--rubric)" strokeWidth=".25" opacity=".4" />
-        {/* Flanking rubric bosses — concentric rings + 4-point star */}
-        {[10, 54].map((cx, i) => (
+        {/* Tiered triangles: large one on top, smaller nested inside */}
+        <polygon points="36,-13 42,-7 48,-13" fill="var(--rubric)" opacity=".95" />
+        <polygon points="38.5,-9.5 42,-6.5 45.5,-9.5" fill="var(--paper-warm)" />
+        <polygon points="39.5,-8.5 42,-6 44.5,-8.5" fill="var(--rubric)" opacity=".9" />
+        {/* Double-rule horizontal base of the pediment */}
+        <line x1="14" y1="-4" x2="70" y2="-4" stroke="var(--rubric)" strokeWidth=".7" opacity=".78" />
+        <line x1="18" y1="-2.4" x2="66" y2="-2.4" stroke="var(--rubric)" strokeWidth=".3" opacity=".42" />
+        {/* Dot chain between the rules — subtle, but reads as detail */}
+        {dotChain(22, -3.2, 62, -3.2, 10, 0.3, 0.45)}
+        {/* Flanking rubric bosses with multiple rings */}
+        {[8, 76].map((cx, i) => (
           <g key={i}>
-            <circle cx={cx} cy="-5" r="1.6" fill="var(--paper-warm)" stroke="var(--rubric)" strokeWidth=".35" opacity=".92" />
-            <polygon points={pointRing(cx, -5, 1.1, 0.45, 4)} fill="var(--rubric)" opacity=".9" />
+            <circle cx={cx} cy="-4" r="2.3" fill="var(--paper-warm)" stroke="var(--rubric)" strokeWidth=".45" />
+            <circle cx={cx} cy="-4" r="1.4" fill="none" stroke="var(--rubric)" strokeWidth=".25" opacity=".55" />
+            <polygon points={pointRing(cx, -4, 1.4, 0.55, 4)} fill="var(--rubric)" opacity=".95" />
           </g>
         ))}
-        {/* Outer filigree dots — taper off to nothing */}
-        {[4, 60].map((cx, i) => (
-          <circle key={i} cx={cx} cy="-5" r=".55" fill="var(--rubric)" opacity=".55" />
-        ))}
+        {/* Outer filigree: small scrolls emerging from the bosses */}
+        <path d="M4,-4 Q1,-4 0,-1" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".5" strokeLinecap="round" />
+        <path d="M80,-4 Q83,-4 84,-1" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".5" strokeLinecap="round" />
       </g>
 
-      {/* ─── OUTER PAPER PANEL — the illuminated tablet ──────────── */}
-      <rect x="0" y="0" width="64" height="82" rx="1.5" fill="var(--paper-warm)" />
+      {/* ─── OUTER PAPER PANEL — the illuminated tablet ────────── */}
+      <rect x="0" y="0" width="84" height="104" rx="2" fill="var(--paper-warm)" />
       {/* Rubric main frame */}
-      <rect x=".7" y=".7" width="62.6" height="80.6" rx="1.2" fill="none" stroke="var(--rubric)" strokeWidth=".85" opacity=".88" />
+      <rect x=".8" y=".8" width="82.4" height="102.4" rx="1.6" fill="none" stroke="var(--rubric)" strokeWidth=".95" opacity=".9" />
       {/* Crosshatch layers inside the frame */}
-      <rect x="1.5" y="1.5" width="61" height="79" fill={`url(#${hatchId})`} />
-      <rect x="1.5" y="1.5" width="61" height="79" fill={`url(#${hatchId2})`} />
+      <rect x="1.6" y="1.6" width="80.8" height="100.8" fill={`url(#${hatchId})`} />
+      <rect x="1.6" y="1.6" width="80.8" height="100.8" fill={`url(#${hatchId2})`} />
       {/* Inner hairline frame */}
-      <rect x="3" y="3" width="58" height="76" fill="none" stroke="var(--rubric)" strokeWidth=".35" opacity=".45" />
-      {/* Dashed inner-inner frame for depth */}
-      <rect x="4.5" y="4.5" width="55" height="73" fill="none" stroke="var(--rubric)" strokeWidth=".2" opacity=".28" strokeDasharray="1,1.8" />
+      <rect x="3.2" y="3.2" width="77.6" height="97.6" fill="none" stroke="var(--rubric)" strokeWidth=".4" opacity=".5" />
+      {/* Dashed inner-inner frame */}
+      <rect x="5" y="5" width="74" height="94" fill="none" stroke="var(--rubric)" strokeWidth=".25" opacity=".32" strokeDasharray="1.2,2" />
+      {/* Dot chain along the two long edges (inner) */}
+      {dotChain(9, 4, 75, 4, 16, 0.28, 0.42)}
+      {dotChain(9, 100, 75, 100, 16, 0.28, 0.42)}
 
-      {/* ─── CORNER BOSSES — concentric rings with rubric stars ──── */}
+      {/* ─── MID-EDGE ORNAMENTS — small rubric diamonds marking
+            the midpoint of each outer frame edge. Turn the rectangle
+            into something that reads as intentionally cardinal. */}
       {[
-        [4.5, 4.5],
-        [59.5, 4.5],
-        [4.5, 77.5],
-        [59.5, 77.5],
+        [42, 0.8],    // top
+        [42, 103.2],  // bottom
+        [0.8, 52],    // left
+        [83.2, 52],   // right
       ].map(([x, y], i) => (
         <g key={i}>
-          <circle cx={x} cy={y} r="2.4" fill="var(--paper-warm)" stroke="var(--rubric)" strokeWidth=".4" />
-          <circle cx={x} cy={y} r="1.5" fill="none" stroke="var(--rubric)" strokeWidth=".25" opacity=".55" />
-          <polygon points={pointRing(x, y, 1.6, 0.55, 4)} fill="var(--rubric)" opacity=".9" />
+          <polygon points={pointRing(x, y, 1.6, 0.6, 4)} fill="var(--paper-warm)" stroke="var(--rubric)" strokeWidth=".35" />
+          <polygon points={pointRing(x, y, 1, 0.38, 4)} fill="var(--rubric)" opacity=".85" />
         </g>
       ))}
 
-      {/* ─── INNER FLOURISH CURLS — acanthus-ish tendrils tucked
-           into the inner corners for density ───────────────────── */}
-      <g stroke="var(--rubric)" strokeWidth=".35" fill="none" opacity=".55" strokeLinecap="round">
-        <path d="M8,8 Q11,9 12.5,11.5 M11,8.2 Q12.5,9 13.5,10.5" />
-        <path d="M56,8 Q53,9 51.5,11.5 M53,8.2 Q51.5,9 50.5,10.5" />
-        <path d="M8,74 Q11,73 12.5,70.5 M11,73.8 Q12.5,73 13.5,71.5" />
-        <path d="M56,74 Q53,73 51.5,70.5 M53,73.8 Q51.5,73 50.5,71.5" />
-      </g>
+      {/* ─── CORNER BOSSES — concentric rings with rubric stars,
+            now with filigree tails curling inward into the panel ── */}
+      {[
+        [5, 5, 1, 1],      // top-left
+        [79, 5, -1, 1],    // top-right
+        [5, 99, 1, -1],    // bottom-left
+        [79, 99, -1, -1],  // bottom-right
+      ].map(([x, y, sx, sy], i) => (
+        <g key={i}>
+          <circle cx={x} cy={y} r="2.8" fill="var(--paper-warm)" stroke="var(--rubric)" strokeWidth=".45" />
+          <circle cx={x} cy={y} r="1.7" fill="none" stroke="var(--rubric)" strokeWidth=".25" opacity=".55" />
+          <polygon points={pointRing(x, y, 1.8, 0.65, 4)} fill="var(--rubric)" opacity=".92" />
+          {/* tiny filigree tail curling into the panel */}
+          <path
+            d={`M${x + 2.2 * sx},${y + 2.2 * sy} Q${x + 5 * sx},${y + 3.5 * sy} ${x + 7 * sx},${y + 5 * sy}`}
+            stroke="var(--rubric)"
+            strokeWidth=".3"
+            fill="none"
+            opacity=".45"
+            strokeLinecap="round"
+          />
+        </g>
+      ))}
 
-      {/* ─── WEEKDAY INSCRIPTION BAND ────────────────────────────── */}
-      <line x1="8" y1="18" x2="56" y2="18" stroke="var(--rubric)" strokeWidth=".3" opacity=".5" />
+      {/* ─── INNER FILIGREE — triple-arc acanthus tendrils in each
+            inner corner, with small terminal dots ─────────────── */}
+      <g stroke="var(--rubric)" strokeWidth=".38" fill="none" opacity=".6" strokeLinecap="round">
+        {/* top-left */}
+        <path d="M11,11 Q15,12 17,16" />
+        <path d="M13,11.3 Q16,12.3 17.5,15" />
+        <path d="M14.5,11.5 Q16.8,12.5 18,14" />
+        {/* top-right */}
+        <path d="M73,11 Q69,12 67,16" />
+        <path d="M71,11.3 Q68,12.3 66.5,15" />
+        <path d="M69.5,11.5 Q67.2,12.5 66,14" />
+        {/* bottom-left */}
+        <path d="M11,93 Q15,92 17,88" />
+        <path d="M13,92.7 Q16,91.7 17.5,89" />
+        <path d="M14.5,92.5 Q16.8,91.5 18,90" />
+        {/* bottom-right */}
+        <path d="M73,93 Q69,92 67,88" />
+        <path d="M71,92.7 Q68,91.7 66.5,89" />
+        <path d="M69.5,92.5 Q67.2,91.5 66,90" />
+      </g>
+      {/* tiny terminal dots on the acanthus tendrils */}
+      {[
+        [17, 16], [67, 16], [17, 88], [67, 88],
+      ].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r=".45" fill="var(--rubric)" opacity=".65" />
+      ))}
+
+      {/* ─── WEEKDAY INSCRIPTION BAND ───────────────────────────── */}
+      <line x1="10" y1="23.5" x2="74" y2="23.5" stroke="var(--rubric)" strokeWidth=".35" opacity=".55" />
       <text
-        x="32"
-        y="15"
+        x={42}
+        y={19.5}
         fontFamily="var(--display)"
-        fontSize="5.6"
+        fontSize="7.2"
         fill="var(--rubric)"
         textAnchor="middle"
         style={{
@@ -127,37 +225,48 @@ export function IlluminatedDayBadge({
       >
         {weekday}
       </text>
-      {/* Tiny rubric diamonds framing the weekday text */}
-      <polygon points="11,13.5 12.5,15 11,16.5 9.5,15" fill="var(--rubric)" opacity=".7" />
-      <polygon points="53,13.5 54.5,15 53,16.5 51.5,15" fill="var(--rubric)" opacity=".7" />
+      {/* Diamond flanks — tight to the weekday text */}
+      <polygon points="14,17 16,19 14,21 12,19" fill="var(--rubric)" opacity=".75" />
+      <polygon points="70,17 72,19 70,21 68,19" fill="var(--rubric)" opacity=".75" />
+      {/* Scroll terminators beyond the diamonds */}
+      <path d="M10,19 Q7.5,17 7,14" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".55" strokeLinecap="round" />
+      <path d="M74,19 Q76.5,17 77,14" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".55" strokeLinecap="round" />
 
-      {/* ─── BREATHING OCTAGRAM behind the numeral ───────────────── */}
+      {/* ─── OCTAGRAM + OUTER DOTTED RING behind the numeral ───── */}
       <g
         style={{
           animation: "sealBreathe 9s ease-in-out infinite",
-          transformOrigin: "32px 46px",
+          transformOrigin: "42px 56px",
         }}
       >
         <polygon
-          points={pointRing(32, 46, 16, 6, 8)}
+          points={pointRing(42, 56, 20, 7.5, 8)}
           fill="none"
           stroke="var(--rubric)"
-          strokeWidth=".35"
-          opacity={illuminated ? 0.5 : 0.35}
+          strokeWidth=".4"
+          opacity={illuminated ? 0.55 : 0.38}
         />
         <polygon
-          points={pointRing(32, 46, 10, 3.8, 8)}
+          points={pointRing(42, 56, 13, 4.8, 8)}
           fill="var(--rubric)"
-          opacity={illuminated ? 0.15 : 0.1}
+          opacity={illuminated ? 0.16 : 0.1}
         />
       </g>
+      {/* Outer dotted ring — studded with four dots at the cardinal
+          points, suggesting a clock-face or compass rose. */}
+      <circle cx="42" cy="56" r="24" fill="none" stroke="var(--rubric)" strokeWidth=".2" opacity=".24" strokeDasharray="0.8,1.6" />
+      {[
+        [42, 32], [42, 80], [18, 56], [66, 56],
+      ].map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r=".7" fill="var(--rubric)" opacity=".55" />
+      ))}
 
-      {/* ─── DAY NUMERAL — Cinzel Decorative rubric ──────────────── */}
+      {/* ─── DAY NUMERAL — Cinzel Decorative rubric at scale ───── */}
       <text
-        x={j(32, 0.4)}
-        y={j(55, 0.4)}
+        x={j(42, 0.4)}
+        y={j(66, 0.4)}
         fontFamily="var(--font-cinzel), 'Cormorant SC', Georgia, serif"
-        fontSize="24"
+        fontSize="30"
         fontWeight="900"
         fill="var(--rubric)"
         textAnchor="middle"
@@ -168,17 +277,20 @@ export function IlluminatedDayBadge({
       >
         {day}
       </text>
-      {/* Gilt highlight — small paper-coloured glints on the numeral */}
-      <circle cx={j(26, 0.3)} cy={j(42, 0.3)} r=".6" fill="var(--paper)" opacity=".45" />
-      <circle cx={j(38, 0.3)} cy={j(52, 0.3)} r=".4" fill="var(--paper)" opacity=".3" />
+      {/* Gilt highlights — four small paper-coloured glints,
+          jittered so no two dates read identical */}
+      <circle cx={j(34, 0.4)} cy={j(50, 0.4)} r=".8" fill="var(--paper)" opacity=".48" />
+      <circle cx={j(50, 0.4)} cy={j(62, 0.4)} r=".55" fill="var(--paper)" opacity=".35" />
+      <circle cx={j(39, 0.3)} cy={j(58, 0.3)} r=".35" fill="var(--paper)" opacity=".28" />
+      <circle cx={j(46, 0.3)} cy={j(53, 0.3)} r=".35" fill="var(--paper)" opacity=".28" />
 
-      {/* ─── MONTH INSCRIPTION BAND ──────────────────────────────── */}
-      <line x1="8" y1="65" x2="56" y2="65" stroke="var(--rubric)" strokeWidth=".3" opacity=".5" />
+      {/* ─── MONTH INSCRIPTION BAND ─────────────────────────────── */}
+      <line x1="10" y1="82" x2="74" y2="82" stroke="var(--rubric)" strokeWidth=".35" opacity=".55" />
       <text
-        x="32"
-        y="73"
+        x="42"
+        y="92"
         fontFamily="var(--italic)"
-        fontSize="6.8"
+        fontSize="8.4"
         fill="var(--ink-light)"
         textAnchor="middle"
         fontStyle="italic"
@@ -187,20 +299,27 @@ export function IlluminatedDayBadge({
         {month}
       </text>
 
-      {/* ─── SCROLLED FOOT — rubric calligraphic flourish ────────── */}
+      {/* ─── SCROLLED FOOT — rubric calligraphic flourish with
+            hanging pendant ───────────────────────────────────── */}
       <g>
-        {/* twin arcs curling inward to a central boss */}
-        <path d="M10,90 Q20,94 32,92 Q44,94 54,90" fill="none" stroke="var(--rubric)" strokeWidth=".55" opacity=".75" />
-        <path d="M16,90 Q20,91.5 23,91" fill="none" stroke="var(--rubric)" strokeWidth=".3" opacity=".55" />
-        <path d="M48,90 Q44,91.5 41,91" fill="none" stroke="var(--rubric)" strokeWidth=".3" opacity=".55" />
-        {/* central boss */}
-        <circle cx="32" cy="92.5" r="1.6" fill="var(--paper-warm)" stroke="var(--rubric)" strokeWidth=".35" />
-        <polygon points={pointRing(32, 92.5, 1.1, 0.45, 4)} fill="var(--rubric)" opacity=".9" />
-        {/* flanking dots — taper */}
-        <circle cx="25" cy="93" r=".55" fill="var(--rubric)" opacity=".6" />
-        <circle cx="39" cy="93" r=".55" fill="var(--rubric)" opacity=".6" />
-        <circle cx="20" cy="93.3" r=".35" fill="var(--rubric)" opacity=".4" />
-        <circle cx="44" cy="93.3" r=".35" fill="var(--rubric)" opacity=".4" />
+        {/* twin arcs curling toward central boss */}
+        <path d="M12,112 Q26,117 42,114 Q58,117 72,112" fill="none" stroke="var(--rubric)" strokeWidth=".6" opacity=".78" />
+        <path d="M18,112 Q24,114 28,113" fill="none" stroke="var(--rubric)" strokeWidth=".32" opacity=".55" />
+        <path d="M66,112 Q60,114 56,113" fill="none" stroke="var(--rubric)" strokeWidth=".32" opacity=".55" />
+        {/* Central boss — paper-cored rubric ring with star */}
+        <circle cx="42" cy="115" r="2.1" fill="var(--paper-warm)" stroke="var(--rubric)" strokeWidth=".45" />
+        <polygon points={pointRing(42, 115, 1.4, 0.55, 4)} fill="var(--rubric)" opacity=".92" />
+        {/* Flanking dots — taper */}
+        <circle cx="32" cy="116" r=".7" fill="var(--rubric)" opacity=".65" />
+        <circle cx="52" cy="116" r=".7" fill="var(--rubric)" opacity=".65" />
+        <circle cx="26" cy="116.5" r=".45" fill="var(--rubric)" opacity=".45" />
+        <circle cx="58" cy="116.5" r=".45" fill="var(--rubric)" opacity=".45" />
+        {/* Pendant / tassel hanging below the central boss — a
+            short stem ending in a small rubric diamond, anchoring
+            the composition visually. */}
+        <line x1="42" y1="117" x2="42" y2="122" stroke="var(--rubric)" strokeWidth=".4" opacity=".65" />
+        <polygon points="42,122 44,125 42,128 40,125" fill="var(--rubric)" opacity=".85" />
+        <circle cx="42" cy="128.5" r=".45" fill="var(--rubric)" opacity=".55" />
       </g>
     </svg>
   );

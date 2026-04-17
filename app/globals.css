@@ -1945,9 +1945,9 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   width: 100%;
   background: transparent;
   border: none;
-  padding: 16px 14px 14px 14px;
+  padding: 18px 14px 18px 12px;
   display: grid;
-  grid-template-columns: 68px 1fr 16px;
+  grid-template-columns: 90px 1fr 16px;
   gap: 14px;
   align-items: center;
   color: var(--ink);
@@ -1964,8 +1964,8 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 6px 4px 0;
-  min-width: 62px;
+  padding: 2px 0;
+  min-width: 86px;
 }
 
 .history-card-body {
