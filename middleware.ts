@@ -44,13 +44,20 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Cookie-only fast path: an Supabase auth cookie exists ⇒ proceed,
+  // Cookie-only fast path: a Supabase auth cookie exists ⇒ proceed,
   // otherwise redirect. Skips the remote getUser() round-trip. Used
   // for high-frequency routes where shaving ~150ms per request matters.
+  //
+  // Supabase's SSR helper splits large JWTs across multiple cookies named
+  // `sb-<ref>-auth-token`, `sb-<ref>-auth-token.0`, `.1`, etc. So we
+  // accept any cookie whose name matches that family — otherwise a
+  // chunked Google-OAuth session (which *is* signed in) gets 307'd to
+  // /login, which then 307s back, and the browser loops until it gives
+  // up. That was the image-missing + extra-sluggishness you just saw.
   if (COOKIE_ONLY_PREFIXES.some((p) => pathname.startsWith(p))) {
     const hasSessionCookie = req.cookies
       .getAll()
-      .some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+      .some((c) => /^sb-.+-auth-token(\.\d+)?$/.test(c.name));
     if (hasSessionCookie) return NextResponse.next();
     const url = req.nextUrl.clone();
     url.pathname = "/login";
