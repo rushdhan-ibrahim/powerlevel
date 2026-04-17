@@ -22,6 +22,7 @@
  */
 
 import { ReactNode, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 type Props = {
   title?: string;
@@ -97,49 +98,51 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
         </button>
       </div>
 
-      {open && (
-        <div
-          className="chart-lightbox-scrim"
-          onClick={tryClose}
-        >
-          <div
-            ref={surfaceRef}
-            className="chart-lightbox-surface"
-            role="dialog"
-            aria-modal="true"
-            aria-label={title ?? "chart"}
-            // Stop clicks bubbling to the scrim so taps INSIDE the
-            // surface don't dismiss the lightbox.
-            onClick={(e) => e.stopPropagation()}
-          >
-            <header className="chart-lightbox-head">
-              <div className="chart-lightbox-head-text">
-                {title && <div className="chart-lightbox-title">{title}</div>}
-                {caption && <div className="chart-lightbox-caption">{caption}</div>}
+      {open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          /* Portal to document.body — the scrim's z-index:80 is only
+             meaningful at the top of the stacking context. Plate wraps
+             charts in a `relative z-[1]` div, which would otherwise trap
+             the scrim below the folio and tab bar. */
+          <div className="chart-lightbox-scrim" onClick={tryClose}>
+            <div
+              ref={surfaceRef}
+              className="chart-lightbox-surface"
+              role="dialog"
+              aria-modal="true"
+              aria-label={title ?? "chart"}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <header className="chart-lightbox-head">
+                <div className="chart-lightbox-head-text">
+                  {title && <div className="chart-lightbox-title">{title}</div>}
+                  {caption && <div className="chart-lightbox-caption">{caption}</div>}
+                </div>
+                <button
+                  type="button"
+                  className="chart-lightbox-close"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpen(false);
+                  }}
+                  aria-label="close"
+                >
+                  <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+                    <path d="M3,3 L15,15 M15,3 L3,15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </header>
+              <div className="chart-lightbox-chart">
+                {fullscreenChild ?? children}
               </div>
-              <button
-                type="button"
-                className="chart-lightbox-close"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpen(false);
-                }}
-                aria-label="close"
-              >
-                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-                  <path d="M3,3 L15,15 M15,3 L3,15" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
-              </button>
-            </header>
-            <div className="chart-lightbox-chart">
-              {fullscreenChild ?? children}
+              <div className="chart-lightbox-hint">
+                <span>pinch to zoom · drag to scrub · tap outside to close</span>
+              </div>
             </div>
-            <div className="chart-lightbox-hint">
-              <span>pinch to zoom · drag to scrub · tap outside to close</span>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
