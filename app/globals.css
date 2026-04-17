@@ -2316,18 +2316,23 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   position: absolute;
   top: 8px;
   right: 8px;
-  width: 28px;
-  height: 28px;
-  display: flex;
+  width: 32px;
+  height: 32px;
   align-items: center;
   justify-content: center;
-  background: color-mix(in srgb, var(--paper) 75%, transparent);
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
   border: 1px solid var(--rule);
   border-radius: 4px;
-  color: var(--ash);
+  color: var(--rubric);
   cursor: zoom-in;
-  transition: color .15s var(--ease), border-color .15s var(--ease);
-  /* Only show on mobile — desktop users have the room already. */
+  transition: color .15s var(--ease), border-color .15s var(--ease), background .15s var(--ease);
+  /* Above the plate title (z:2) and the ghost code underlay so the
+     tap target is never covered, and above the chart SVG whose
+     interaction rect sits inside its own viewport. */
+  z-index: 3;
+  /* Kill the iOS 300ms click delay on this target. */
+  touch-action: manipulation;
+  /* Default hidden on desktop — charts have room. Mobile overrides. */
   display: none;
 }
 @media (max-width: 767.98px) {

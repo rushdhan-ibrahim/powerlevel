@@ -86,7 +86,20 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
           type="button"
           className="chart-lightbox-expand"
           aria-label="expand chart"
+          onPointerDown={(e) => {
+            /* Fire on pointerdown to beat iOS's click synthesis and
+               any parent scroll-snap handlers. stopPropagation so the
+               horizontal pager doesn't interpret this as a drag, and
+               preventDefault so the pointer doesn't also start a
+               drag-scrub on the chart below. */
+            e.stopPropagation();
+            e.preventDefault();
+            openedAtRef.current = Date.now();
+            setOpen(true);
+          }}
           onClick={(e) => {
+            /* Some browsers don't fire pointerdown reliably (e.g. when
+               a keyboard triggers the button). Keep click as a fallback. */
             e.stopPropagation();
             openedAtRef.current = Date.now();
             setOpen(true);
