@@ -41,12 +41,17 @@ type Props = {
   size?: number;
 };
 
-export function Initial({ letter, seed, size = 68 }: Props) {
+export function Initial({ letter, seed, size }: Props) {
   const baseSeed = seed ?? (letter.charCodeAt(0) * 31 + 7);
   const rng = mulberry32(baseSeed);
   const j = (v: number, a = 1) => v + (rng() - 0.5) * a;
   const hatchId = `init-hatch-${baseSeed}`;
   const hatchId2 = `init-hatch2-${baseSeed}`;
+  // The `.initial` stylesheet rule owns sizing responsively
+  // (desktop 104×124, mobile 94×112). Only fall back to an inline
+  // style when a caller explicitly asks for a custom size.
+  const sizeStyle =
+    size != null ? { width: size, height: size * 1.2 } : undefined;
 
   // Dot-chain along an edge (rubric dots)
   const dotChain = (x1: number, y1: number, x2: number, y2: number, n: number, r = 0.3, op = 0.5) => {
@@ -68,7 +73,7 @@ export function Initial({ letter, seed, size = 68 }: Props) {
   };
 
   return (
-    <span className="initial" style={{ width: size, height: size * 1.2 }}>
+    <span className="initial" style={sizeStyle}>
       <svg
         viewBox="-8 -16 80 96"
         width="100%"
