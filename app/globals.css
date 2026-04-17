@@ -622,16 +622,15 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
    ════════════════════════════════════════════════════════════ */
 
 .initial {
-  /* Sized to read as a proper drop-cap: the ink panel should span
-     about four lines of body text at the reading size. ~50% bigger
-     than the first upgrade pass. Cap-star + pendant still render
-     outside the CSS box via SVG overflow-visible; margin-box shape
-     reserves room for them while the first/last prose line flushes
-     with the panel itself. */
+  /* Sized so the visible ink panel fills most of the span and
+     embeds in the text rather than pushing it away. The viewBox
+     is tight to the panel itself; the cap-star and pendant render
+     via SVG overflow-visible above/below without reserving CSS
+     space the text then has to wrap around. */
   float: left;
-  width: 104px;
-  height: 124px;
-  margin: 18px 20px 22px 0;
+  width: 92px;
+  height: 94px;
+  margin: 4px 18px 10px 0;
   shape-outside: margin-box;
   display: inline-block;
 }
@@ -641,14 +640,11 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   display: block;
   overflow: visible;
 }
-/* Mobile — scaled slightly smaller but still substantially bigger
-   than the previous pass so the capital reads as properly
-   illuminated rather than as a postage stamp. */
 @media (max-width: 767.98px) {
   .initial {
-    width: 94px;
-    height: 112px;
-    margin: 14px 16px 18px 0;
+    width: 78px;
+    height: 80px;
+    margin: 2px 14px 8px 0;
   }
 }
 
