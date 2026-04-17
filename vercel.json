@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["syd1"],
+  "functions": {
+    "app/api/workouts/route.ts": { "maxDuration": 120 },
+    "app/api/workouts/[id]/route.ts": { "maxDuration": 120 },
+    "app/api/admin/sweep-orphans/route.ts": { "maxDuration": 300 },
+    "app/api/preview/route.ts": { "maxDuration": 60 }
+  }
+}

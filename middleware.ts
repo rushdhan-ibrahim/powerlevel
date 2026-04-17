@@ -23,6 +23,15 @@ const PUBLIC_PREFIXES = [
   "/api/auth",
 ];
 
+// Authenticated-but-don't-bother-revalidating-on-each-fetch routes.
+// These are gated by the cookie's existence (so a logged-out user still
+// gets 307'd to /login) but skip the remote getUser() call. Used for
+// the image proxy which is hit dozens of times per page load — paying
+// a Supabase Auth round-trip on every photo would tank performance.
+const COOKIE_ONLY_PREFIXES = [
+  "/api/uploads",
+];
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -33,6 +42,20 @@ export async function middleware(req: NextRequest) {
     PUBLIC_PREFIXES.some((p) => pathname.startsWith(p))
   ) {
     return NextResponse.next();
+  }
+
+  // Cookie-only fast path: an Supabase auth cookie exists ⇒ proceed,
+  // otherwise redirect. Skips the remote getUser() round-trip. Used
+  // for high-frequency routes where shaving ~150ms per request matters.
+  if (COOKIE_ONLY_PREFIXES.some((p) => pathname.startsWith(p))) {
+    const hasSessionCookie = req.cookies
+      .getAll()
+      .some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+    if (hasSessionCookie) return NextResponse.next();
+    const url = req.nextUrl.clone();
+    url.pathname = "/login";
+    url.searchParams.set("next", pathname);
+    return NextResponse.redirect(url);
   }
 
   let res = NextResponse.next({
