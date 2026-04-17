@@ -40,6 +40,7 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
   // Timestamp of the opening tap — used to suppress the ghost
   // pointerup/click that lands on the scrim immediately after the
   // expand button fires. Without this the lightbox opens and closes
@@ -48,6 +49,86 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
   const tryClose = () => {
     if (Date.now() - openedAtRef.current < 350) return;
     setOpen(false);
+  };
+
+  // Pinch-zoom + pan state. iOS PWAs don't allow native viewport
+  // pinch even without maximum-scale; we have to drive it ourselves
+  // with webkit GestureEvents + single-finger touch drag.
+  const [scale, setScale] = useState(1);
+  const [tx, setTx] = useState(0);
+  const [ty, setTy] = useState(0);
+  const baseScaleRef = useRef(1);
+  const lastTouchRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Reset transform whenever the lightbox closes.
+  useEffect(() => {
+    if (!open) {
+      setScale(1);
+      setTx(0);
+      setTy(0);
+    }
+  }, [open]);
+
+  // Attach pinch + drag handlers while open. GestureEvent is a WebKit
+  // extension — on non-iOS these listeners are no-ops.
+  useEffect(() => {
+    const el = chartRef.current;
+    if (!el || !open) return;
+    const onGestureStart = (e: Event) => {
+      e.preventDefault();
+      baseScaleRef.current = scale;
+    };
+    const onGestureChange = (e: Event) => {
+      e.preventDefault();
+      const next = Math.max(
+        1,
+        Math.min(4, baseScaleRef.current * (e as unknown as { scale: number }).scale),
+      );
+      setScale(next);
+      if (next === 1) {
+        setTx(0);
+        setTy(0);
+      }
+    };
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1 || scale === 1) return;
+      lastTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1 || scale === 1 || !lastTouchRef.current) return;
+      e.preventDefault();
+      const dx = e.touches[0].clientX - lastTouchRef.current.x;
+      const dy = e.touches[0].clientY - lastTouchRef.current.y;
+      lastTouchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      setTx((v) => v + dx);
+      setTy((v) => v + dy);
+    };
+    const onTouchEnd = () => {
+      lastTouchRef.current = null;
+    };
+    el.addEventListener("gesturestart", onGestureStart as EventListener);
+    el.addEventListener("gesturechange", onGestureChange as EventListener);
+    el.addEventListener("gestureend", onGestureStart as EventListener);
+    el.addEventListener("touchstart", onTouchStart, { passive: false });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    el.addEventListener("touchend", onTouchEnd);
+    el.addEventListener("touchcancel", onTouchEnd);
+    return () => {
+      el.removeEventListener("gesturestart", onGestureStart as EventListener);
+      el.removeEventListener("gesturechange", onGestureChange as EventListener);
+      el.removeEventListener("gestureend", onGestureStart as EventListener);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      el.removeEventListener("touchend", onTouchEnd);
+      el.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [open, scale]);
+
+  // Double-tap the chart to reset zoom.
+  const onChartDoubleClick = () => {
+    setScale(1);
+    setTx(0);
+    setTy(0);
   };
 
   // Lock body scroll while open — same technique as the mobile
@@ -149,11 +230,28 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
                   </svg>
                 </button>
               </header>
-              <div className="chart-lightbox-chart">
-                {fullscreenChild ?? children}
+              <div
+                className="chart-lightbox-chart"
+                ref={chartRef}
+                onDoubleClick={onChartDoubleClick}
+              >
+                <div
+                  className="chart-lightbox-chart-inner"
+                  style={{
+                    transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
+                    transformOrigin: "center center",
+                    transition: scale === 1 ? "transform .25s var(--ease)" : "none",
+                  }}
+                >
+                  {fullscreenChild ?? children}
+                </div>
               </div>
               <div className="chart-lightbox-hint">
-                <span>pinch to zoom · drag to scrub · tap outside to close</span>
+                <span>
+                  {scale > 1
+                    ? "drag to pan · double-tap to reset · tap outside to close"
+                    : "pinch to zoom · double-tap to reset · tap outside to close"}
+                </span>
               </div>
             </div>
           </div>,

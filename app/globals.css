@@ -2348,9 +2348,11 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
      landscape doesn't leave a stale white bar at the top. */
   height: 100dvh;
   z-index: 80;
-  background: color-mix(in srgb, #000 65%, transparent);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  /* 85% black — dark enough that the paper folio underneath no longer
+     tints the status-bar area cream on iOS black-translucent. */
+  background: color-mix(in srgb, #000 85%, transparent);
+  backdrop-filter: blur(10px) saturate(.85);
+  -webkit-backdrop-filter: blur(10px) saturate(.85);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2450,6 +2452,13 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .chart-lightbox-chart > * {
   width: 100%;
   max-width: 100%;
+}
+.chart-lightbox-chart-inner {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
 }
 .chart-lightbox-chart svg {
   width: 100%;
