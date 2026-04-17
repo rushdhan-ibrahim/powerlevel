@@ -81,9 +81,18 @@ export async function middleware(req: NextRequest) {
     },
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // getSession() reads + verifies the cookie LOCALLY using the Supabase
+  // SDK's signature check — no network hop to Supabase Auth on every
+  // tab click. getUser() would revalidate against the server, which is
+  // strictly-more-correct (catches server-side revocation) but cost
+  // 50-100ms per navigation. For a single-user app, reading the
+  // freshly-signed cookie is a fair tradeoff. The auth callback still
+  // uses getUser() to verify the initial exchange, and the /api/*
+  // route handlers that mutate data re-verify via supabaseServer().
+  const { data: { session } } = await supabase.auth.getSession();
+  const email = session?.user?.email;
 
-  if (!user) {
+  if (!session || !email) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", pathname);
@@ -92,7 +101,7 @@ export async function middleware(req: NextRequest) {
 
   // Single-user allowlist
   const allowed = (process.env.ALLOWED_EMAIL ?? "").toLowerCase().trim();
-  if (allowed && user.email?.toLowerCase() !== allowed) {
+  if (allowed && email.toLowerCase() !== allowed) {
     await supabase.auth.signOut();
     const url = req.nextUrl.clone();
     url.pathname = "/login";
