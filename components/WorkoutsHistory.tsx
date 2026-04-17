@@ -4,6 +4,7 @@ import Link from "next/link";
 import { format, formatDistanceToNow } from "date-fns";
 import { useMemo, useState } from "react";
 import { Ornament } from "@/components/manuscript/Ornament";
+import { IlluminatedDayBadge } from "@/components/manuscript/IlluminatedDayBadge";
 import { roman } from "@/lib/manuscript";
 
 export type WorkoutHistoryRow = {
@@ -177,9 +178,12 @@ function WorkoutCard({ w }: { w: WorkoutHistoryRow }) {
         aria-label={`${w.title ?? "untitled workout"} — tap to ${expanded ? "collapse" : "expand"}`}
       >
         <div className="history-card-date">
-          <div className="history-card-date-dow">{format(d, "EEE").toLowerCase()}</div>
-          <div className="history-card-date-day">{format(d, "d")}</div>
-          <div className="history-card-date-month">{format(d, "MMM").toLowerCase()}</div>
+          <IlluminatedDayBadge
+            weekday={format(d, "EEE").toLowerCase()}
+            day={format(d, "d")}
+            month={format(d, "MMM").toLowerCase()}
+            illuminated={expanded}
+          />
         </div>
         <div className="history-card-body">
           <div className="history-card-title">{w.title ?? "untitled workout"}</div>

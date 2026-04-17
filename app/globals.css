@@ -1945,10 +1945,10 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   width: 100%;
   background: transparent;
   border: none;
-  padding: 12px 14px 12px 10px;
+  padding: 16px 14px 14px 14px;
   display: grid;
-  grid-template-columns: 62px 1fr 16px;
-  gap: 12px;
+  grid-template-columns: 68px 1fr 16px;
+  gap: 14px;
   align-items: center;
   color: var(--ink);
   text-align: left;
@@ -1958,122 +1958,15 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 }
 .history-card-head:active { background: var(--paper-mid); }
 
-/* ILLUMINATED DATE — a miniature manuscript day-marker.
-   Echoes the Initial's vocabulary at a smaller scale: rubric
-   pediment up top, classical-capital numeral as the centrepiece,
-   a scrolled rubric foot, corner glints. The weekday sits above
-   the pediment as its title; the month sits below the foot in
-   italic ash with calligraphic em-dash flanks. */
+/* The date column is just a wrapper for the IlluminatedDayBadge
+   SVG; alignment only, no decoration (the SVG carries it all). */
 .history-card-date {
-  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  line-height: 1;
-  padding: 10px 4px 8px;
-  border-right: 1px solid var(--rule-soft);
-  padding-right: 12px;
-  margin-right: -6px;
-  min-width: 56px;
+  justify-content: center;
+  padding: 4px 6px 4px 0;
+  min-width: 62px;
 }
-/* Rubric pediment above the weekday */
-.history-card-date::before {
-  content: "";
-  position: absolute;
-  top: 2px;
-  left: 50%;
-  translate: -50% 0;
-  width: 16px;
-  height: 5px;
-  background:
-    linear-gradient(to bottom right, transparent 48%, var(--rubric) 48% 52%, transparent 52%),
-    linear-gradient(to bottom left,  transparent 48%, var(--rubric) 48% 52%, transparent 52%);
-  opacity: .6;
-  pointer-events: none;
-}
-.history-card-date-dow {
-  font-family: var(--display);
-  font-variant: small-caps;
-  font-size: .54rem;
-  letter-spacing: .16em;
-  color: var(--rubric);
-  margin-top: 6px;
-  margin-bottom: 4px;
-  position: relative;
-}
-/* Tiny rubric diamonds flanking the weekday */
-.history-card-date-dow::before,
-.history-card-date-dow::after {
-  content: "◇";
-  position: absolute;
-  top: 50%;
-  translate: 0 -50%;
-  color: var(--rubric);
-  opacity: .7;
-  font-size: .5rem;
-}
-.history-card-date-dow::before { right: 100%; margin-right: 5px; }
-.history-card-date-dow::after  { left:  100%; margin-left:  5px; }
-/* The day numeral — Cinzel Decorative (classical Roman capitals
-   with flourishes), rubric-coloured with a gilt text-shadow so it
-   reads as red ink on paper with a faint highlight. */
-.history-card-date-day {
-  font-family: var(--font-cinzel), 'Cormorant SC', Georgia, serif;
-  font-weight: 700;
-  font-variant-numeric: lining-nums;
-  font-size: 1.55rem;
-  color: var(--rubric);
-  line-height: 1;
-  text-shadow:
-    0 0 0.5px var(--rubric-deep),
-    0 1px 0 color-mix(in srgb, var(--paper) 60%, transparent);
-  letter-spacing: -.01em;
-  margin: 2px 0;
-}
-/* Hairline between numeral and month */
-.history-card-date::after {
-  content: "";
-  position: absolute;
-  bottom: 22px;
-  left: 50%;
-  translate: -50% 0;
-  width: 14px;
-  height: 1px;
-  background: var(--rubric);
-  opacity: .4;
-}
-.history-card-date-month {
-  font-family: var(--italic);
-  font-style: italic;
-  font-size: .64rem;
-  color: var(--ash);
-  margin-top: 6px;
-  letter-spacing: .02em;
-  position: relative;
-}
-.history-card-date-month::before,
-.history-card-date-month::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  translate: 0 -50%;
-  width: 5px;
-  height: 1px;
-  background: var(--ash-light);
-  opacity: .7;
-}
-.history-card-date-month::before { right: 100%; margin-right: 4px; }
-.history-card-date-month::after  { left:  100%; margin-left:  4px; }
-
-/* Expanded card — slightly enriches the badge state so it's
-   clear which day is "open". */
-.history-card.is-expanded .history-card-date-day {
-  text-shadow:
-    0 0 2px color-mix(in srgb, var(--rubric) 35%, transparent),
-    0 0 0.5px var(--rubric-deep),
-    0 1px 0 color-mix(in srgb, var(--paper) 60%, transparent);
-}
-.history-card.is-expanded .history-card-date::before { opacity: 1; }
 
 .history-card-body {
   display: flex;
