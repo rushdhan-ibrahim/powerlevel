@@ -622,13 +622,14 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
    ════════════════════════════════════════════════════════════ */
 
 .initial {
-  /* Viewbox is tight to the panel + scrolled foot; the cap-star
-     renders via SVG overflow-visible above. Margins are kept tiny
-     so prose that wraps beneath the drop-cap resumes almost
-     flush with the panel's bottom edge. */
+  /* Span bounds are tight to the panel itself so prose wrapping
+     beneath the drop-cap flushes with the panel's left edge. The
+     scroll-tails, cap-star, and flanking bosses render outside the
+     viewBox via SVG overflow-visible — they sit in the folio's
+     padding area and don't steal column space. */
   float: left;
-  width: 88px;
-  height: 86px;
+  width: 74px;
+  height: 87px;
   margin: 4px 10px 4px 0;
   shape-outside: margin-box;
   display: inline-block;
@@ -641,8 +642,8 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 }
 @media (max-width: 767.98px) {
   .initial {
-    width: 74px;
-    height: 72px;
+    width: 62px;
+    height: 73px;
     margin: 2px 8px 2px 0;
   }
 }

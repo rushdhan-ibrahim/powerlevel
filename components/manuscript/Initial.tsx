@@ -75,7 +75,8 @@ export function Initial({ letter, seed, size }: Props) {
   return (
     <span className="initial" style={sizeStyle}>
       <svg
-        viewBox="-8 -10 80 78"
+        viewBox="0 -10 66 78"
+        preserveAspectRatio="xMinYMid meet"
         width="100%"
         height="100%"
         aria-hidden="true"
