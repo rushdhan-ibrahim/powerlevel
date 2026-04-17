@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- The app icon. Paper-tone square with a rubric sigil:
+       a compass-rose + eight-pointed star inside concentric
+       hairline rings, echoing the masthead wordmark glyph. -->
+  <defs>
+    <radialGradient id="paper" cx="50%" cy="35%" r="65%">
+      <stop offset="0%"  stop-color="#f5efe4"/>
+      <stop offset="70%" stop-color="#ebe3d3"/>
+      <stop offset="100%" stop-color="#ddd2bc"/>
+    </radialGradient>
+    <filter id="grain" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.16  0 0 0 0 0.11  0 0 0 0 0.06  0 0 0 0.06 0"/>
+      <feComposite in2="SourceGraphic" operator="in"/>
+    </filter>
+  </defs>
+
+  <!-- paper background with a subtle rounded square (iOS masks the
+       outer 18% to its own radius so the actual edges won't matter
+       on home screen, but they show on non-iOS / maskable-icon
+       surfaces). 10% padding (51px) keeps the sigil inside the
+       iOS safe-zone. -->
+  <rect x="0" y="0" width="512" height="512" rx="96" fill="url(#paper)"/>
+  <rect x="0" y="0" width="512" height="512" rx="96" fill="transparent" filter="url(#grain)" opacity="0.7"/>
+
+  <!-- outer ring -->
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#2a2520" stroke-width="1.4" opacity="0.55"/>
+  <!-- dashed concentric ring -->
+  <circle cx="256" cy="256" r="152" fill="none" stroke="#2a2520" stroke-width="0.9" stroke-dasharray="3,5" opacity="0.35"/>
+  <!-- inner solid ring -->
+  <circle cx="256" cy="256" r="112" fill="none" stroke="#2a2520" stroke-width="0.9" opacity="0.5"/>
+
+  <!-- eight-pointed star (pointRing equivalent at r1=108, r2=48) -->
+  <polygon
+    points="256,148 293.89,219.11 364,218.34 314.63,256 364,293.66 293.89,292.89 256,364 218.11,292.89 148,293.66 197.37,256 148,218.34 218.11,219.11"
+    fill="none"
+    stroke="#8b2d23"
+    stroke-width="2"
+    opacity="0.92"
+  />
+
+  <!-- inner flame / sigil -->
+  <polygon
+    points="256,200 278.52,245.4 328,250.4 291.36,283.2 300,331.2 256,308 212,331.2 220.64,283.2 184,250.4 233.48,245.4"
+    fill="#8b2d23"
+    opacity="0.95"
+  />
+
+  <!-- center core -->
+  <circle cx="256" cy="256" r="14" fill="#f5efe4"/>
+  <circle cx="256" cy="256" r="10" fill="#8b2d23" opacity="0.95"/>
+
+  <!-- faint marginalia cross at each cardinal direction -->
+  <g stroke="#8b2d23" stroke-width="1" opacity="0.35" stroke-linecap="round">
+    <line x1="256" y1="96"  x2="256" y2="104"/>
+    <line x1="256" y1="408" x2="256" y2="416"/>
+    <line x1="96"  y1="256" x2="104" y2="256"/>
+    <line x1="408" y1="256" x2="416" y2="256"/>
+  </g>
+</svg>

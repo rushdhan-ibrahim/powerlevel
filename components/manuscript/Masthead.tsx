@@ -19,6 +19,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/SignOutButton";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { format } from "date-fns";
 import { roman } from "@/lib/manuscript";
 import {
@@ -62,7 +63,7 @@ export function Masthead() {
   const yearR = roman(today.getFullYear()).toLowerCase(); // mmxxvi
 
   return (
-    <header className="masthead">
+    <header className="masthead desktop-only">
       {/* TOP BAND — wordmark + dated stamp */}
       <div className="masthead-top">
         <Link href="/" className="masthead-wordmark" aria-label="powerlevel — home">
@@ -95,6 +96,8 @@ export function Masthead() {
             </svg>
             <span>profile</span>
           </Link>
+          <span aria-hidden="true" style={{ color: "var(--ash-light)", opacity: 0.6 }}>·</span>
+          <ThemeToggle />
           <span aria-hidden="true" style={{ color: "var(--ash-light)", opacity: 0.6 }}>·</span>
           <SignOutButton />
         </div>

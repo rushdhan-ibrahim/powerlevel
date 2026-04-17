@@ -7,6 +7,13 @@ dist/
 # un-ignore lib/ which gets swept up by Python-oriented global gitignores
 !lib/
 !lib/**
+# un-ignore the public/icons directory — the global ~/.gitignore_global
+# has `Icon?` (for macOS's Icon\r marker) which case-insensitively eats
+# any path containing 'icon' (including public/icons/*). Whitelist the
+# whole public/ subtree since everything there is a PWA asset we want
+# shipped.
+!public/
+!public/**
 
 # env
 .env

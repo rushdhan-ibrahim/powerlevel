@@ -39,6 +39,49 @@
   /* ─── motion ────────────────────────────────────────────── */
   --ease: cubic-bezier(.25, .1, .25, 1);
   --ease-breath: cubic-bezier(.45, 0, .55, 1);
+
+  /* ─── safe-area insets ────────────────────────────────────
+     Mirror CSS env() into our own custom properties so we can
+     compose them with other values (e.g. "env(safe-area-inset-top)
+     + 12px"). Defaults are 0 on non-iOS. */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CANDLELIGHT — the opt-in dark theme. The manuscript read by
+   candle, not sunlight. Paper becomes deep walnut; ink becomes
+   the gold of a gilt initial catching flame; rubric is the
+   minium red of an illuminator's brush, brighter to carry in
+   the dimness. Applied when <html data-theme="candlelight">.
+   ════════════════════════════════════════════════════════════════ */
+
+:root[data-theme="candlelight"] {
+  --paper:        #15100a;
+  --paper-mid:    #1c140c;
+  --paper-warm:   #231811;
+  --paper-cool:   #191309;
+
+  --ink:          #e6d29a;   /* warm gold ink */
+  --ink-light:    #b69a66;
+  --ash:          #8f7a4e;
+  --ash-light:    #5e4f34;
+  --ghost:        #3a301d;
+
+  --rubric:       #d95043;
+  --rubric-light: #ec6b5b;
+  --rubric-deep:  #b53a2d;
+
+  --rule:         rgb(230 210 154 / .14);
+  --rule-soft:    rgb(230 210 154 / .07);
+  --rule-faint:   rgb(230 210 154 / .035);
+}
+:root[data-theme="candlelight"] body {
+  background:
+    radial-gradient(circle at 50% 0%, rgb(255 200 120 / .05), transparent 45%),
+    linear-gradient(180deg, #0c0907, #0a0806 60%, #060403);
 }
 
 @theme inline {
@@ -54,6 +97,49 @@
 /* ─── reset ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: smooth; }
+
+/* ─── responsive scaffolding ──────────────────────────────
+   Mobile is anything below 768px. The desktop manuscript
+   shell (masthead with nav bays, gutter furniture) is hidden;
+   a lightweight mobile shell takes its place.
+
+   Components opt into visibility with .desktop-only and
+   .mobile-only. */
+.desktop-only { display: initial; }
+.mobile-only  { display: none; }
+@media (max-width: 767.98px) {
+  .desktop-only { display: none !important; }
+  .mobile-only  { display: initial; }
+  /* The gutter furniture (rose motifs flanking the page) doesn't
+     fit at phone width — it's only shown from ≥768px. Same for
+     the Folio's page-number + colophon dressing. */
+  .gutter-furniture { display: none !important; }
+  html, body { overflow-x: hidden; }
+  body {
+    /* Plain paper background on mobile; no dark gradient behind
+       the page since the page already fills the screen. */
+    background: var(--paper);
+  }
+  /* The desktop Folio floats a boxed page with generous padding
+     and shadow. On mobile the Folio IS the screen: edge-to-edge,
+     no shadow, tighter padding. */
+  .folio {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 18px calc(var(--safe-bottom) + 24px) !important;
+    box-shadow: none !important;
+    min-height: 100vh;
+    background: var(--paper);
+  }
+  .folio::before { opacity: .1; }
+}
+
+/* Common utility: respect the iPhone's home indicator + Dynamic
+   Island when positioning fixed elements. Use these on any
+   mobile-shell bar rather than hard-coding env(...) per element. */
+.safe-pad-top    { padding-top:    var(--safe-top); }
+.safe-pad-bottom { padding-bottom: var(--safe-bottom); }
+.safe-pad-x      { padding-left: var(--safe-left); padding-right: var(--safe-right); }
 
 body {
   background:
@@ -1345,3 +1431,366 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .bg-paper      { background: var(--paper); }
 .bg-paper-warm { background: var(--paper-warm); }
 .font-mono-num { font-family: var(--mono); font-variant-numeric: oldstyle-nums tabular-nums; }
+
+/* ════════════════════════════════════════════════════════════════
+   MOBILE SHELL — the phone's chrome. A minimal title bar at the
+   top, a 4-tab navigation bar at the bottom with a centred rubric
+   FAB, and two bottom-sheet surfaces (add + more). Shown only
+   below 768px; above that the desktop Masthead takes over.
+
+   Both bars use backdrop-filter so content scrolls behind them
+   at reduced opacity — feels like the page continues under the
+   decorative frame, manuscript-style.
+   ════════════════════════════════════════════════════════════════ */
+
+.mobile-titlebar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  padding-top: calc(var(--safe-top) + 12px);
+  padding-bottom: 10px;
+  padding-left: calc(var(--safe-left) + 18px);
+  padding-right: calc(var(--safe-right) + 18px);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: saturate(150%) blur(12px);
+  -webkit-backdrop-filter: saturate(150%) blur(12px);
+  border-bottom: 1px solid var(--rule-soft);
+}
+.mobile-titlebar-brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-weight: 500;
+  letter-spacing: .2em;
+  font-size: .78rem;
+}
+.mobile-titlebar-crest {
+  width: 18px;
+  height: 18px;
+  position: relative;
+  top: 3px;
+}
+.mobile-titlebar-date {
+  font-family: var(--mono);
+  font-size: .62rem;
+  letter-spacing: .12em;
+  color: var(--rubric);
+  font-variant-numeric: oldstyle-nums lining-nums;
+  text-transform: lowercase;
+}
+.mobile-titlebar-date .date-sep {
+  color: var(--ash-light);
+  margin: 0 4px;
+}
+
+.mobile-tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 50;
+  padding: 6px calc(var(--safe-left) + 4px) calc(var(--safe-bottom) + 6px) calc(var(--safe-right) + 4px);
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+  backdrop-filter: saturate(150%) blur(14px);
+  -webkit-backdrop-filter: saturate(150%) blur(14px);
+  border-top: 1px solid var(--rule-soft);
+  box-shadow: 0 -1px 0 var(--rule-faint);
+}
+.mobile-tabbar::before {
+  /* a second hairline above the first, manuscript-style double rule */
+  content: "";
+  position: absolute;
+  left: 14px; right: 14px; top: -3px;
+  height: 1px;
+  background: var(--rule-faint);
+}
+.mobile-tab {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 0 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  color: var(--ash);
+  text-decoration: none;
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-weight: 500;
+  letter-spacing: .14em;
+  font-size: .52rem;
+  transition: color .15s var(--ease);
+  min-height: 48px;
+}
+.mobile-tab:hover   { color: var(--ink); }
+.mobile-tab:active  { transform: scale(.96); }
+.mobile-tab.is-active { color: var(--rubric); }
+.mobile-tab-glyph {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-tab.is-active .mobile-tab-dot {
+  /* a tiny rubric diamond above the label of the active tab — the
+     same vocabulary used throughout the manuscript plates */
+  width: 3px;
+  height: 3px;
+  background: var(--rubric);
+  transform: rotate(45deg);
+  margin-top: 2px;
+}
+
+/* The floating action button sits in the centre slot of the 5-column
+   grid (column 3 of 5), rising above the bar with a rubric seal. */
+.mobile-fab-slot {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+}
+.mobile-fab {
+  position: relative;
+  top: -18px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1.5px solid var(--rubric);
+  background: var(--paper);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rubric);
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / .08),
+    0 0 0 6px color-mix(in srgb, var(--paper) 80%, transparent);
+  transition: transform .15s var(--ease), box-shadow .15s var(--ease);
+}
+.mobile-fab:active { transform: scale(.94); }
+.mobile-fab-inner {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--rubric);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: sealBreathe 8s ease-in-out infinite;
+  transform-origin: center;
+}
+.mobile-fab-cross {
+  width: 20px;
+  height: 20px;
+}
+
+/* Bottom sheet (both the "add" and "more" use the same chrome) */
+.mobile-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: color-mix(in srgb, #000 60%, transparent);
+  -webkit-tap-highlight-color: transparent;
+  animation: sheetFade .2s var(--ease);
+}
+.mobile-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 61;
+  background: var(--paper);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  padding: 14px calc(var(--safe-left) + 22px) calc(var(--safe-bottom) + 24px) calc(var(--safe-right) + 22px);
+  box-shadow: 0 -8px 30px rgb(0 0 0 / .22);
+  animation: sheetRise .28s var(--ease);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.mobile-sheet-handle {
+  width: 44px;
+  height: 4px;
+  background: var(--ash-light);
+  border-radius: 2px;
+  margin: 0 auto 16px;
+  opacity: .5;
+}
+.mobile-sheet-title {
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-size: .78rem;
+  letter-spacing: .22em;
+  color: var(--rubric);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.mobile-sheet-sub {
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .86rem;
+  color: var(--ash);
+  text-align: center;
+  margin-bottom: 16px;
+}
+.mobile-sheet-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 10px;
+  border-top: 1px solid var(--rule-soft);
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--serif);
+  font-size: 1.04rem;
+  cursor: pointer;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  width: 100%;
+  text-align: left;
+}
+.mobile-sheet-row:first-of-type { border-top: none; }
+.mobile-sheet-row:active { background: var(--paper-mid); }
+.mobile-sheet-row-glyph {
+  width: 26px;
+  height: 26px;
+  color: var(--rubric);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mobile-sheet-row-chev {
+  margin-left: auto;
+  color: var(--ash-light);
+  font-family: var(--mono);
+  font-size: .9rem;
+}
+
+/* Big-hit action row inside the add sheet — two choices, side by side */
+.mobile-add-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 8px;
+}
+.mobile-add-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 14px;
+  background: var(--paper-warm);
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  color: var(--ink);
+  text-decoration: none;
+  text-align: center;
+  transition: transform .15s var(--ease), border-color .15s var(--ease);
+  min-height: 160px;
+  justify-content: center;
+}
+.mobile-add-card:active { transform: scale(.97); border-color: var(--rubric); }
+.mobile-add-card-glyph {
+  width: 36px;
+  height: 36px;
+  color: var(--rubric);
+}
+.mobile-add-card-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  font-size: 1rem;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.mobile-add-card-sub {
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .78rem;
+  color: var(--ash);
+  line-height: 1.4;
+  padding: 0 6px;
+}
+
+/* Keep page content clear of the floating tab bar on mobile */
+@media (max-width: 767.98px) {
+  .folio, main, .folio > * {
+    /* allow content to extend behind the bar but guarantee the
+       last section isn't obscured */
+  }
+  body {
+    padding-bottom: calc(var(--safe-bottom) + 76px);
+  }
+}
+
+@keyframes sheetRise {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+@keyframes sheetFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── theme toggles ─────────────────────────────────────── */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  padding: 4px 10px 4px 8px;
+  color: var(--ash);
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-size: .58rem;
+  letter-spacing: .16em;
+  cursor: pointer;
+  transition: color .15s var(--ease), border-color .15s var(--ease);
+}
+.theme-toggle:hover { color: var(--ink); border-color: var(--rubric); }
+
+.theme-toggle-compact {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+}
+.theme-toggle-track {
+  position: relative;
+  width: 42px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--ghost);
+  display: inline-block;
+  transition: background .2s var(--ease);
+}
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--paper);
+  box-shadow: 0 1px 3px rgb(0 0 0 / .2);
+  transition: transform .2s var(--ease), background .2s var(--ease);
+}
+.theme-toggle-track.is-on {
+  background: var(--rubric);
+}
+.theme-toggle-track.is-on .theme-toggle-thumb {
+  transform: translateX(20px);
+  background: var(--paper);
+}
