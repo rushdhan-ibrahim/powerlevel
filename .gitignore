@@ -4,6 +4,10 @@ out/
 build/
 dist/
 
+# un-ignore lib/ which gets swept up by Python-oriented global gitignores
+!lib/
+!lib/**
+
 # env
 .env
 .env.local
@@ -13,6 +17,12 @@ dist/
 prisma/dev.db
 prisma/dev.db-journal
 uploads/
+
+# supabase cli local state (config.toml at supabase/ root is committed;
+# everything in .supabase/ is machine-specific)
+.supabase/
+supabase/.temp/
+supabase/.branches/
 
 # logs
 npm-debug.log*

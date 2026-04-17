@@ -3,8 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // direct_url is used by `prisma migrate` / `prisma db push` to bypass
+  // the pgbouncer pooler (which doesn't support prepared statements).
+  directUrl = env("DIRECT_URL")
 }
 
 model Workout {
