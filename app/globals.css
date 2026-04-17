@@ -622,15 +622,18 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
    ════════════════════════════════════════════════════════════ */
 
 .initial {
-  /* The enlarged Initial has room for a cap-star above and a pendant
-     below the panel, so its box is taller than the original 68×80.
-     The floated width is unchanged; the shape-outside keeps the
-     prose flowing around the panel edge, not the ornament halo. */
+  /* The Initial's CSS box is sized to the ink PANEL — cap-star and
+     pendant extend outside via SVG overflow-visible. shape-outside
+     uses inset() so prose wraps beside the panel itself; the halo
+     drifts above/below the first/last text lines without pushing
+     them out.
+     ~30% larger than the first pass so the ink panel sits in visual
+     proportion to the now-bigger body type. */
   float: left;
-  width: 68px;
-  height: 100px;
-  margin: 14px 16px 4px 0;
-  shape-outside: inset(14px 16px 4px 0);
+  width: 82px;
+  height: 98px;
+  margin: 22px 18px 28px 0;
+  shape-outside: margin-box;
   display: inline-block;
 }
 .initial svg {
@@ -639,14 +642,13 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   display: block;
   overflow: visible;
 }
-/* On mobile, give the Initial a bit more breathing room and scale
-   slightly smaller so it doesn't crowd the first two lines of prose. */
+/* Mobile — still bigger than before but scaled for a 400-odd-px
+   column so it doesn't dominate the first two or three lines. */
 @media (max-width: 767.98px) {
   .initial {
-    width: 62px;
+    width: 76px;
     height: 92px;
-    margin: 10px 14px 2px 0;
-    shape-outside: inset(10px 14px 2px 0);
+    margin: 18px 14px 22px 0;
   }
 }
 
@@ -2249,6 +2251,25 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
     border-color: var(--rubric);
     transform: scale(1.25);
   }
+  /* Continuous rubric progress bar under the dots — fills as the
+     user scrolls across the pager (not just at snap boundaries)
+     so you always know how far into the sequence you are. */
+  .chapter-pager-progress {
+    width: 56%;
+    max-width: 280px;
+    height: 2px;
+    background: var(--rule);
+    border-radius: 1px;
+    overflow: hidden;
+    margin: 2px 0 1px;
+  }
+  .chapter-pager-progress-fill {
+    width: 100%;
+    height: 100%;
+    background: var(--rubric);
+    transform-origin: left center;
+    transition: transform .1s linear;
+  }
   .chapter-pager-label {
     display: inline-flex;
     align-items: baseline;
@@ -2261,6 +2282,12 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   .chapter-pager-label-n     { color: var(--rubric); }
   .chapter-pager-label-sep   { color: var(--ash-light); }
   .chapter-pager-label-title { color: var(--ink-light); }
+
+  /* Inside a ChapterPager slide, hide the ChapterOpener's decorative
+     rubric underline — it was reading as a stuck-at-one-position
+     progress indicator. The real progress is now the rubric bar in
+     the pager's sticky indicator above. */
+  .chapter-slide .chapter-opener-rule { display: none; }
 
   .chapter-pager-scroll {
     flex-direction: row;
@@ -2282,4 +2309,142 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
     padding: 0 18px 48px;
     min-width: 0;
   }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CHART LIGHTBOX — tap-to-expand for mobile chart legibility
+   ════════════════════════════════════════════════════════════════ */
+
+.chart-lightbox-anchor { position: relative; }
+.chart-lightbox-expand {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--paper) 75%, transparent);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  color: var(--ash);
+  cursor: zoom-in;
+  transition: color .15s var(--ease), border-color .15s var(--ease);
+  /* Only show on mobile — desktop users have the room already. */
+  display: none;
+}
+@media (max-width: 767.98px) {
+  .chart-lightbox-expand { display: flex; }
+}
+.chart-lightbox-expand:hover { color: var(--rubric); border-color: var(--rubric); }
+.chart-lightbox-expand:active { transform: scale(.94); }
+
+.chart-lightbox-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: color-mix(in srgb, #000 65%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: calc(var(--safe-top) + 18px);
+  padding-bottom: calc(var(--safe-bottom) + 18px);
+  animation: chartScrim .18s var(--ease);
+}
+@keyframes chartScrim {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.chart-lightbox-surface {
+  width: 96vw;
+  max-width: 1000px;
+  max-height: calc(100vh - var(--safe-top) - var(--safe-bottom) - 36px);
+  background: var(--paper);
+  border: 1px solid var(--rubric);
+  border-radius: 6px;
+  box-shadow: 0 20px 60px rgb(0 0 0 / .45);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: chartRise .26s var(--ease);
+}
+@keyframes chartRise {
+  from { opacity: 0; transform: translateY(8px) scale(.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.chart-lightbox-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.chart-lightbox-head-text { min-width: 0; }
+.chart-lightbox-title {
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-size: .78rem;
+  letter-spacing: .2em;
+  color: var(--rubric);
+  line-height: 1.2;
+}
+.chart-lightbox-caption {
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .84rem;
+  color: var(--ash);
+  margin-top: 2px;
+}
+.chart-lightbox-close {
+  background: transparent;
+  border: 1px solid var(--rule);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ash);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color .15s var(--ease), border-color .15s var(--ease);
+}
+.chart-lightbox-close:hover  { color: var(--rubric); border-color: var(--rubric); }
+.chart-lightbox-close:active { transform: scale(.94); }
+
+/* Chart inside — large, scrollable, pinch-zoomable. iOS handles
+   pinch natively via touch-action: pinch-zoom on the container. */
+.chart-lightbox-chart {
+  flex: 1;
+  padding: 16px 14px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pinch-zoom;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+.chart-lightbox-chart > * {
+  width: 100%;
+  max-width: 100%;
+}
+.chart-lightbox-chart svg {
+  width: 100%;
+  height: auto;
+  max-height: none;
+}
+
+.chart-lightbox-hint {
+  padding: 6px 18px calc(var(--safe-bottom) * .25 + 10px);
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .72rem;
+  color: var(--ash-light);
+  text-align: center;
+  border-top: 1px solid var(--rule-faint);
 }

@@ -143,10 +143,10 @@ export default async function InsightsPage() {
         <section>
           <ChapterOpener n="i" title="Records" caption="every PR set in this codex, brightest at the freshest" glyph="rose" />
           <div className="plate-grid">
-            <Plate numeral="i" title="Records" caption="every PR set, brightest at the freshest point">
+            <Plate numeral="i" title="Records" caption="every PR set, brightest at the freshest point" expandable>
               <PilgrimStar prs={prs} />
             </Plate>
-            <Plate numeral="ia" title="PRs per month" caption="how often you broke new ground · last 12 months">
+            <Plate numeral="ia" title="PRs per month" caption="how often you broke new ground · last 12 months" expandable>
               <InkLineChart
                 series={prFrequency}
                 yLabel="PRs"
@@ -163,10 +163,10 @@ export default async function InsightsPage() {
         <section>
           <ChapterOpener n="ii" title="Balance &amp; volume" caption="working sets by muscle group · weight lifted per week" glyph="rose" />
           <div className="plate-grid">
-            <Plate numeral="ii" title="Muscle balance" caption="working sets by muscle group · last 28 days">
+            <Plate numeral="ii" title="Muscle balance" caption="working sets by muscle group · last 28 days" expandable>
               <RoseMuscle data={muscle} />
             </Plate>
-            <Plate numeral="iii" title="Weekly volume" caption="kg lifted per week · last 24 weeks">
+            <Plate numeral="iii" title="Weekly volume" caption="kg lifted per week · last 24 weeks" expandable>
               <PendulumChoir data={weekly24} />
             </Plate>
           </div>
@@ -175,10 +175,10 @@ export default async function InsightsPage() {
         {/* §III Activity */}
         <section>
           <ChapterOpener n="iii" title="Activity over time" caption="every day of the last twenty-six weeks" glyph="hourglass" />
-          <Plate numeral="iv" title="Activity" caption="every day of the last 26 weeks · bead size scales with weight lifted">
+          <Plate numeral="iv" title="Activity" caption="every day of the last 26 weeks · bead size scales with weight lifted" expandable>
             <MemoryField cells={memoryCells} weeks={26} />
           </Plate>
-          <Plate numeral="iva" title="Year at a glance" caption="every day of the last 12 months · cell shading scales with weight lifted">
+          <Plate numeral="iva" title="Year at a glance" caption="every day of the last 12 months · cell shading scales with weight lifted" expandable>
             <YearHeatmap cells={yearCells} />
           </Plate>
         </section>
@@ -187,10 +187,10 @@ export default async function InsightsPage() {
         <section>
           <ChapterOpener n="iv" title="Your repertoire" caption="frequent lifts in motion · the seed grows" glyph="chaplet" />
           <div className="plate-grid">
-            <Plate numeral="v" title="Frequent lifts" caption="hollow beads are cold; larger beads mark milestones">
+            <Plate numeral="v" title="Frequent lifts" caption="hollow beads are cold; larger beads mark milestones" expandable>
               <Chaplet lifts={liftsForChaplet} />
             </Plate>
-            <Plate numeral="vi" title="Growth" caption={`${workouts.length} workouts arranged by φ`}>
+            <Plate numeral="vi" title="Growth" caption={`${workouts.length} workouts arranged by φ`} expandable>
               <Phyllotaxis count={workouts.length} />
             </Plate>
           </div>

@@ -1,8 +1,15 @@
 import { cn } from "@/lib/cn";
+import { ChartLightbox } from "./ChartLightbox";
 
 /**
  * The plate frame. Top-left rubric numeral, top-right italic title,
  * SVG content beneath, italic caption below. Optional ghost code underlay.
+ *
+ * When `expandable` is set, a small rubric expand button appears on the
+ * plate's top-right corner on mobile — tapping it lifts the chart into
+ * a full-viewport ChartLightbox where axis labels, tooltips and gesture
+ * targets all have room. No-op on desktop, where the plate already
+ * fills enough pixels to be legible.
  */
 export function Plate({
   numeral,
@@ -12,6 +19,7 @@ export function Plate({
   children,
   className,
   size = "default",
+  expandable = false,
 }: {
   numeral: string;
   title: string;
@@ -20,7 +28,28 @@ export function Plate({
   children: React.ReactNode;
   className?: string;
   size?: "default" | "tall" | "wide";
+  expandable?: boolean;
 }) {
+  const inner = (
+    <>
+      <span className="plate-n">{numeral}</span>
+      <span className="plate-t">{title}</span>
+      {code && <pre className="plate-code">{code}</pre>}
+      <div className="relative z-[1]">
+        {expandable ? (
+          <ChartLightbox
+            title={title}
+            caption={typeof caption === "string" ? caption : undefined}
+          >
+            {children}
+          </ChartLightbox>
+        ) : (
+          children
+        )}
+      </div>
+      {caption && <figcaption className="plate-c">{caption}</figcaption>}
+    </>
+  );
   return (
     <figure
       className={cn(
@@ -30,11 +59,7 @@ export function Plate({
         className,
       )}
     >
-      <span className="plate-n">{numeral}</span>
-      <span className="plate-t">{title}</span>
-      {code && <pre className="plate-code">{code}</pre>}
-      <div className="relative z-[1]">{children}</div>
-      {caption && <figcaption className="plate-c">{caption}</figcaption>}
+      {inner}
     </figure>
   );
 }

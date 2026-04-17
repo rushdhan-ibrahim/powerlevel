@@ -68,9 +68,9 @@ export function Initial({ letter, seed, size = 68 }: Props) {
   };
 
   return (
-    <span className="initial" style={{ width: size, height: size * 1.48 }}>
+    <span className="initial" style={{ width: size, height: size * 1.2 }}>
       <svg
-        viewBox="-10 -22 84 108"
+        viewBox="-8 -16 80 96"
         width="100%"
         height="100%"
         aria-hidden="true"
@@ -87,45 +87,49 @@ export function Initial({ letter, seed, size = 68 }: Props) {
           </pattern>
         </defs>
 
-        {/* ─── CAP-STAR — 8-point rubric rose crowning everything ─ */}
-        <g style={{ animation: "sealBreathe 11s ease-in-out infinite", transformOrigin: "32px -20px" }}>
-          <polygon points={pointRing(32, -20, 2.6, 1.1, 8)} fill="var(--rubric)" opacity=".9" />
-          <circle cx="32" cy="-20" r=".8" fill="var(--paper)" />
+        {/* ─── CAP-STAR — 8-point rubric rose crowning everything.
+             Moved closer to the panel (y = -14 instead of -20) so it
+             reads as attached to the tablet rather than floating free. */}
+        <g style={{ animation: "sealBreathe 11s ease-in-out infinite", transformOrigin: "32px -14px" }}>
+          <polygon points={pointRing(32, -14, 2.4, 1, 8)} fill="var(--rubric)" opacity=".9" />
+          <circle cx="32" cy="-14" r=".7" fill="var(--paper)" />
         </g>
-        {/* Rising curls, each sways mirror-wise */}
-        <g style={{ animation: "dayCurlSwayL 14s ease-in-out infinite", transformOrigin: "28px -14px" }}>
-          <path d="M28.5,-18 Q25,-16 25,-12" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".6" strokeLinecap="round" />
+        {/* A short rubric stem linking the cap-star to the pediment
+             below, so they read as one architectural unit. */}
+        <line x1="32" y1="-12" x2="32" y2="-9" stroke="var(--rubric)" strokeWidth=".4" opacity=".6" />
+        {/* Rising curls, each sways mirror-wise (tighter arcs) */}
+        <g style={{ animation: "dayCurlSwayL 14s ease-in-out infinite", transformOrigin: "28px -10px" }}>
+          <path d="M30,-13 Q27,-12 27,-9" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".6" strokeLinecap="round" />
         </g>
-        <g style={{ animation: "dayCurlSwayR 14s ease-in-out infinite", transformOrigin: "36px -14px" }}>
-          <path d="M35.5,-18 Q39,-16 39,-12" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".6" strokeLinecap="round" />
+        <g style={{ animation: "dayCurlSwayR 14s ease-in-out infinite", transformOrigin: "36px -10px" }}>
+          <path d="M34,-13 Q37,-12 37,-9" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".6" strokeLinecap="round" />
         </g>
 
-        {/* ─── PEDIMENT — tiered rubric cap ──────────────────────── */}
+        {/* ─── PEDIMENT — tiered rubric cap, tightened vertical ─── */}
         <g>
-          <polygon points="24,-11 32,-5 40,-11" fill="var(--rubric)" opacity=".95" />
-          <polygon points="27,-8 32,-4 37,-8" fill="var(--ink)" />
-          <polygon points="28.5,-7 32,-4.5 35.5,-7" fill="var(--rubric)" opacity=".92" />
+          <polygon points="24,-8 32,-3 40,-8" fill="var(--rubric)" opacity=".95" />
+          <polygon points="27,-6 32,-2.5 37,-6" fill="var(--ink)" />
+          <polygon points="28.5,-5 32,-3 35.5,-5" fill="var(--rubric)" opacity=".92" />
           {/* Double-rule base */}
-          <line x1="10" y1="-2" x2="54" y2="-2" stroke="var(--rubric)" strokeWidth=".7" opacity=".8" />
-          <line x1="14" y1="-.4" x2="50" y2="-.4" stroke="var(--rubric)" strokeWidth=".28" opacity=".4" />
-          {dotChain(17, -1.2, 47, -1.2, 9, 0.26, 0.5)}
-          {/* Flanking bosses — staggered breath */}
+          <line x1="10" y1="-1.2" x2="54" y2="-1.2" stroke="var(--rubric)" strokeWidth=".7" opacity=".8" />
+          <line x1="14" y1=".2"   x2="50" y2=".2"   stroke="var(--rubric)" strokeWidth=".28" opacity=".4" />
+          {dotChain(17, -.5, 47, -.5, 9, 0.26, 0.5)}
+          {/* Flanking bosses */}
           {[6, 58].map((cx, i) => (
             <g
               key={i}
               style={{
                 animation: `sealBreathe ${14 + i * 1.5}s ease-in-out ${i * 2}s infinite`,
-                transformOrigin: `${cx}px -2px`,
+                transformOrigin: `${cx}px -1.2px`,
               }}
             >
-              <circle cx={cx} cy="-2" r="1.9" fill="var(--ink)" stroke="var(--rubric)" strokeWidth=".45" />
-              <circle cx={cx} cy="-2" r="1.2" fill="none" stroke="var(--rubric)" strokeWidth=".25" opacity=".6" />
-              <polygon points={pointRing(cx, -2, 1.3, 0.5, 4)} fill="var(--rubric)" opacity=".9" />
+              <circle cx={cx} cy="-1.2" r="1.9" fill="var(--ink)" stroke="var(--rubric)" strokeWidth=".45" />
+              <circle cx={cx} cy="-1.2" r="1.2" fill="none" stroke="var(--rubric)" strokeWidth=".25" opacity=".6" />
+              <polygon points={pointRing(cx, -1.2, 1.3, 0.5, 4)} fill="var(--rubric)" opacity=".9" />
             </g>
           ))}
-          {/* Outer scrolls */}
-          <path d="M2,-2 Q-1,-2 -2,1" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".55" strokeLinecap="round" />
-          <path d="M62,-2 Q65,-2 66,1" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".55" strokeLinecap="round" />
+          <path d="M2,-1.2 Q-1,-1 -1.5,1" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".55" strokeLinecap="round" />
+          <path d="M62,-1.2 Q65,-1 65.5,1" stroke="var(--rubric)" strokeWidth=".3" fill="none" opacity=".55" strokeLinecap="round" />
         </g>
 
         {/* ─── OUTER FRAME — solid ink panel with nested borders ── */}
@@ -288,27 +292,27 @@ export function Initial({ letter, seed, size = 68 }: Props) {
           />
         ))}
 
-        {/* ─── SCROLLED FOOT with hanging pendant ───────────────── */}
+        {/* ─── SCROLLED FOOT — tightened closer to the panel so the
+             hanging pendant stays within the Initial's visual box ── */}
         <g>
-          <path d="M10,70 Q22,74 32,71 Q42,74 54,70" fill="none" stroke="var(--rubric)" strokeWidth=".55" opacity=".75" />
-          <path d="M16,70 Q20,71.5 23,71" fill="none" stroke="var(--rubric)" strokeWidth=".3" opacity=".55" />
-          <path d="M48,70 Q44,71.5 41,71" fill="none" stroke="var(--rubric)" strokeWidth=".3" opacity=".55" />
-          <circle cx="32" cy="72.5" r="1.7" fill="var(--ink)" stroke="var(--rubric)" strokeWidth=".4" />
-          <polygon points={pointRing(32, 72.5, 1.2, 0.45, 4)} fill="var(--rubric)" opacity=".9" />
-          <circle cx="24" cy="73" r=".6" fill="var(--rubric)" opacity=".65" />
-          <circle cx="40" cy="73" r=".6" fill="var(--rubric)" opacity=".65" />
-          <circle cx="19" cy="73.3" r=".38" fill="var(--rubric)" opacity=".45" />
-          <circle cx="45" cy="73.3" r=".38" fill="var(--rubric)" opacity=".45" />
-          {/* Hanging pendant */}
+          <path d="M10,67 Q22,70 32,68 Q42,70 54,67" fill="none" stroke="var(--rubric)" strokeWidth=".55" opacity=".75" />
+          <path d="M16,67 Q20,68 23,68" fill="none" stroke="var(--rubric)" strokeWidth=".3" opacity=".55" />
+          <path d="M48,67 Q44,68 41,68" fill="none" stroke="var(--rubric)" strokeWidth=".3" opacity=".55" />
+          <circle cx="32" cy="68.8" r="1.5" fill="var(--ink)" stroke="var(--rubric)" strokeWidth=".4" />
+          <polygon points={pointRing(32, 68.8, 1.1, 0.4, 4)} fill="var(--rubric)" opacity=".9" />
+          <circle cx="24" cy="69" r=".55" fill="var(--rubric)" opacity=".65" />
+          <circle cx="40" cy="69" r=".55" fill="var(--rubric)" opacity=".65" />
+          <circle cx="19" cy="69.3" r=".35" fill="var(--rubric)" opacity=".45" />
+          <circle cx="45" cy="69.3" r=".35" fill="var(--rubric)" opacity=".45" />
+          {/* Pendant — shorter so it stays within the viewBox */}
           <g
             style={{
               animation: "pendantBreathe 13s ease-in-out infinite",
-              transformOrigin: "32px 72.5px",
+              transformOrigin: "32px 68.8px",
             }}
           >
-            <line x1="32" y1="74" x2="32" y2="78.5" stroke="var(--rubric)" strokeWidth=".4" opacity=".7" />
-            <polygon points="32,78.5 33.8,81 32,83.5 30.2,81" fill="var(--rubric)" opacity=".85" />
-            <circle cx="32" cy="84.5" r=".4" fill="var(--rubric)" opacity=".55" />
+            <line x1="32" y1="70" x2="32" y2="73" stroke="var(--rubric)" strokeWidth=".4" opacity=".7" />
+            <polygon points="32,73 33.6,75 32,77 30.4,75" fill="var(--rubric)" opacity=".85" />
           </g>
         </g>
       </svg>

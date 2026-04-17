@@ -62,10 +62,34 @@ export function ChapterPager({ labels, children }: Props) {
 
   const current = labels[active];
 
+  // Live fractional progress across the pager — 0 on chapter 1,
+  // 1 on the last chapter. Used to fill the rubric progress bar
+  // continuously as the user scrolls, not just at snap boundaries.
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let frame = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const w = el.clientWidth;
+        const total = Math.max((slideCount - 1) * w, 1);
+        setProgress(Math.min(1, Math.max(0, el.scrollLeft / total)));
+      });
+    };
+    onScroll();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, [slideCount]);
+
   return (
     <div className="chapter-pager">
-      <div className="chapter-pager-indicator mobile-only" aria-hidden="true">
-        <div className="chapter-pager-dots">
+      <div className="chapter-pager-indicator mobile-only">
+        <div className="chapter-pager-dots" aria-hidden="true">
           {labels.map((_, i) => (
             <button
               key={i}
@@ -76,8 +100,23 @@ export function ChapterPager({ labels, children }: Props) {
             />
           ))}
         </div>
+        {/* Continuous rubric progress bar sitting just under the dots.
+            Fills as you swipe across the pager so the reader always
+            knows how far into the chapter sequence they are. */}
+        <div
+          className="chapter-pager-progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={slideCount}
+          aria-valuenow={Math.round(progress * (slideCount - 1)) + 1}
+        >
+          <div
+            className="chapter-pager-progress-fill"
+            style={{ transform: `scaleX(${progress})` }}
+          />
+        </div>
         {current && (
-          <div className="chapter-pager-label">
+          <div className="chapter-pager-label" aria-hidden="true">
             <span className="chapter-pager-label-n">§{current.n}</span>
             <span className="chapter-pager-label-sep">·</span>
             <span className="chapter-pager-label-title">{current.title}</span>
