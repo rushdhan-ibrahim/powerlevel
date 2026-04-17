@@ -622,17 +622,16 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
    ════════════════════════════════════════════════════════════ */
 
 .initial {
-  /* The Initial's CSS box is sized to the ink PANEL — cap-star and
-     pendant extend outside via SVG overflow-visible. shape-outside
-     uses inset() so prose wraps beside the panel itself; the halo
-     drifts above/below the first/last text lines without pushing
-     them out.
-     ~30% larger than the first pass so the ink panel sits in visual
-     proportion to the now-bigger body type. */
+  /* Sized to read as a proper drop-cap: the ink panel should span
+     about four lines of body text at the reading size. ~50% bigger
+     than the first upgrade pass. Cap-star + pendant still render
+     outside the CSS box via SVG overflow-visible; margin-box shape
+     reserves room for them while the first/last prose line flushes
+     with the panel itself. */
   float: left;
-  width: 82px;
-  height: 98px;
-  margin: 22px 18px 28px 0;
+  width: 104px;
+  height: 124px;
+  margin: 18px 20px 22px 0;
   shape-outside: margin-box;
   display: inline-block;
 }
@@ -642,13 +641,14 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   display: block;
   overflow: visible;
 }
-/* Mobile — still bigger than before but scaled for a 400-odd-px
-   column so it doesn't dominate the first two or three lines. */
+/* Mobile — scaled slightly smaller but still substantially bigger
+   than the previous pass so the capital reads as properly
+   illuminated rather than as a postage stamp. */
 @media (max-width: 767.98px) {
   .initial {
-    width: 76px;
-    height: 92px;
-    margin: 18px 14px 22px 0;
+    width: 94px;
+    height: 112px;
+    margin: 14px 16px 18px 0;
   }
 }
 

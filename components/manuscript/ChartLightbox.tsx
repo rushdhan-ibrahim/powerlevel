@@ -35,6 +35,15 @@ type Props = {
 export function ChartLightbox({ title, caption, children, fullscreenChild }: Props) {
   const [open, setOpen] = useState(false);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  // Timestamp of the opening tap — used to suppress the ghost
+  // pointerup/click that lands on the scrim immediately after the
+  // expand button fires. Without this the lightbox opens and closes
+  // in the same gesture.
+  const openedAtRef = useRef(0);
+  const tryClose = () => {
+    if (Date.now() - openedAtRef.current < 350) return;
+    setOpen(false);
+  };
 
   // Lock body scroll while open — same technique as the mobile
   // bottom sheets (overflow:hidden alone isn't enough on iOS).
@@ -76,7 +85,11 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
           type="button"
           className="chart-lightbox-expand"
           aria-label="expand chart"
-          onClick={() => setOpen(true)}
+          onClick={(e) => {
+            e.stopPropagation();
+            openedAtRef.current = Date.now();
+            setOpen(true);
+          }}
         >
           <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
             <path d="M1,5 V1 H5 M9,1 H13 V5 M13,9 V13 H9 M5,13 H1 V9" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -85,16 +98,19 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
       </div>
 
       {open && (
-        <div className="chart-lightbox-scrim" onPointerUp={() => setOpen(false)}>
+        <div
+          className="chart-lightbox-scrim"
+          onClick={tryClose}
+        >
           <div
             ref={surfaceRef}
             className="chart-lightbox-surface"
             role="dialog"
             aria-modal="true"
             aria-label={title ?? "chart"}
-            // Stop pointer events bubbling to the scrim so taps
-            // INSIDE the surface don't dismiss the lightbox.
-            onPointerUp={(e) => e.stopPropagation()}
+            // Stop clicks bubbling to the scrim so taps INSIDE the
+            // surface don't dismiss the lightbox.
+            onClick={(e) => e.stopPropagation()}
           >
             <header className="chart-lightbox-head">
               <div className="chart-lightbox-head-text">
@@ -104,7 +120,10 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
               <button
                 type="button"
                 className="chart-lightbox-close"
-                onClick={() => setOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpen(false);
+                }}
                 aria-label="close"
               >
                 <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
