@@ -104,12 +104,15 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: sm
    a lightweight mobile shell takes its place.
 
    Components opt into visibility with .desktop-only and
-   .mobile-only. */
-.desktop-only { display: initial; }
-.mobile-only  { display: none; }
+   .mobile-only. We use !important inside scoped media queries
+   so the hide-rule wins over any display value the element
+   might carry from another class (e.g. the mobile-tabbar has
+   display: grid, which would otherwise beat a plain "none"). */
+@media (min-width: 768px) {
+  .mobile-only  { display: none !important; }
+}
 @media (max-width: 767.98px) {
   .desktop-only { display: none !important; }
-  .mobile-only  { display: initial; }
   /* The gutter furniture (rose motifs flanking the page) doesn't
      fit at phone width — it's only shown from ≥768px. Same for
      the Folio's page-number + colophon dressing. */
