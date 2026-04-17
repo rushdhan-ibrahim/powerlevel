@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Workout {
+  id              String   @id @default(cuid())
+  date            DateTime
+  title           String?
+  notes           String?
+  bodyweight      Float?
+  durationMin     Int?
+  imagePath       String?       // legacy single-image (still used for first page)
+  rawParseJson    String?
+  parseModel      String?
+  parseTokensIn   Int?
+  parseTokensOut  Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  exercises    Exercise[]
+  pages        WorkoutPage[]
+  sessionNotes SessionNote[]
+
+  @@index([date])
+}
+
+/**
+ * A workout may span several photographed pages. Each WorkoutPage
+ * keeps its source image so the facsimile column can show all of
+ * them together. Backwards-compatible with the imagePath field
+ * (kept on Workout for the first / primary page).
+ */
+model WorkoutPage {
+  id        String   @id @default(cuid())
+  workoutId String
+  imagePath String
+  order     Int      @default(0)
+
+  workout Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+
+  @@index([workoutId])
+}
+
+model Exercise {
+  id              String   @id @default(cuid())
+  workoutId       String
+  name            String
+  normalizedName  String
+  canonicalSlug   String?     // matched to the library, e.g. "bench_press"
+  category        String?     // weighted_reps | bodyweight_reps | timed_hold | carry | distance_time | cardio_distance | reps_only
+  pattern         String?     // movement pattern (horizontal_push, hinge, etc.)
+  variation       String?     // free-form qualifier (paused, tempo 3-1-1, close-grip, deficit)
+  muscleGroup     String?
+  notes           String?
+  order           Int      @default(0)
+
+  workout Workout       @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  sets    ExerciseSet[]
+
+  @@index([workoutId])
+  @@index([normalizedName])
+  @@index([canonicalSlug])
+}
+
+model ExerciseSet {
+  id           String   @id @default(cuid())
+  exerciseId   String
+  order        Int      @default(0)
+  weight       Float?    // bar load (weighted) or added load (bodyweight) or carried load (carry)
+  weightUnit   String?  @default("kg")
+  reps         Int?
+  durationSec  Int?     // for timed_hold, carry-with-time, cardio
+  distanceM    Float?   // for carry, distance_time, cardio_distance
+  rpe          Float?
+  isWarmup     Boolean  @default(false)
+  isFailure    Boolean  @default(false)
+  notes        String?
+
+  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@index([exerciseId])
+}
+
+/**
+ * Standalone notes Gemini extracts that don't belong to a single
+ * set or exercise — overall session reflections, conditions,
+ * sleep, soreness, etc. Kept separate from Workout.notes (a single
+ * blob) so each one can be timestamped, referenced, and displayed
+ * as its own card.
+ */
+model SessionNote {
+  id        String   @id @default(cuid())
+  workoutId String
+  body      String
+  kind      String?  // e.g. "feeling", "sleep", "injury", "general"
+  order     Int      @default(0)
+
+  workout Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+
+  @@index([workoutId])
+}
+
+/**
+ * Singleton profile — the lifter's own stats. Used to enrich analyses
+ * with bodyweight-relative strength, age-based standards, etc.
+ * Always identified by id = "singleton".
+ */
+model Profile {
+  id            String   @id @default("singleton")
+  displayName   String?
+  heightCm      Float?
+  bodyweightKg  Float?        // current manual override; else pulled from latest workout.bodyweight
+  birthYear     Int?
+  sex           String?       // "male" | "female" | null
+  goal          String?       // "strength" | "hypertrophy" | "recovery" | "general"
+  units         String?  @default("kg")
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+}

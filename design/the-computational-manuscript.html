@@ -1,0 +1,1677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Computational Manuscript — A Design Language</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600&family=Cormorant+SC:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;1,300;1,400&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#ece6dc;--paper-mid:#e2dbd0;--paper-warm:#f0ebe0;
+  --ink:#16130f;--ink-light:#3a342c;--ash:#6c645d;--ash-light:#9e9589;--ghost:#c4bdb3;
+  --rubric:#8b2d23;--rubric-light:#a8473a;
+  --rule:rgb(0 0 0/.10);--rule-soft:rgb(0 0 0/.05);
+  --serif:'EB Garamond','Cormorant Garamond',Georgia,serif;
+  --display:'Cormorant SC',Georgia,serif;
+  --italic:'Cormorant Garamond',Georgia,serif;
+  --mono:'JetBrains Mono','Courier New',monospace;
+  --ease:cubic-bezier(.25,.1,.25,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased;scroll-behavior:smooth}
+body{background:radial-gradient(circle at 50% 0%,rgb(255 255 255/.04),transparent 40%),linear-gradient(180deg,#1e1b18,#141210 60%,#0d0b09);color:var(--ink);font-family:var(--serif)}
+
+.folio{max-width:820px;margin:0 auto;background:radial-gradient(ellipse at 30% 8%,rgb(255 255 255/.14),transparent 42%),radial-gradient(ellipse at 70% 92%,rgb(255 255 255/.06),transparent 32%),var(--paper);position:relative;isolation:isolate;padding:60px 72px 80px;box-shadow:0 0 0 1px rgb(0 0 0/.06),0 16px 64px rgb(0 0 0/.18)}
+.folio::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='6' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23g)'/%3E%3C/svg%3E");opacity:.18;mix-blend-mode:multiply;pointer-events:none;z-index:0}
+.folio::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 38%,rgb(0 0 0/.08) 100%);pointer-events:none;z-index:0}
+.folio>*{position:relative;z-index:1}
+@media(max-width:900px){.folio{padding:40px 24px 60px;margin:0}}
+
+.folio-ghost{position:absolute;inset:0;z-index:0;font-family:var(--mono);font-size:.46rem;line-height:1.3;color:var(--ghost);opacity:.10;overflow:hidden;padding:60px 72px;pointer-events:none;white-space:pre}
+.folio-ghost-inner{animation:codeScroll 180s linear infinite}
+@keyframes codeScroll{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+h1{font-family:var(--display);font-weight:400;font-size:1.8rem;letter-spacing:.22em;text-align:center;color:var(--ink);line-height:1.2;margin-bottom:4px;font-variant:small-caps}
+.subtitle{font-family:var(--italic);font-style:italic;font-size:.88rem;text-align:center;color:var(--ash);letter-spacing:.04em;margin-bottom:6px}
+.date{font-family:var(--mono);font-size:.58rem;text-align:center;color:var(--ash-light);letter-spacing:.08em;margin-bottom:32px;font-variant-numeric:oldstyle-nums}
+h2{font-family:var(--display);font-weight:400;font-size:1.05rem;letter-spacing:.18em;color:var(--ink);margin:42px 0 14px;font-variant:small-caps}
+h2 .n{color:var(--rubric);margin-right:6px}
+h3{font-family:var(--italic);font-weight:400;font-style:italic;font-size:.92rem;color:var(--ink-light);margin:20px 0 8px}
+p{font-size:.88rem;line-height:1.68;color:var(--ink-light);margin-bottom:12px;text-align:justify;hyphens:auto}
+p strong{color:var(--ink);font-weight:500}
+p em{font-family:var(--italic)}
+code{font-family:var(--mono);font-size:.78em;color:var(--ash)}
+
+.orn{text-align:center;margin:24px 0;color:var(--ash-light);letter-spacing:.5em;font-size:.5rem;user-select:none}
+.hp{text-align:center;margin:16px 0 24px}
+
+.principle{margin:14px 0;padding:12px 16px;border-left:2px solid var(--rubric);background:rgb(139 45 35/.02)}
+.principle-l{font-family:var(--display);font-size:.5rem;letter-spacing:.14em;text-transform:uppercase;color:var(--rubric);margin-bottom:2px}
+.principle-t{font-family:var(--serif);font-size:.82rem;color:var(--ink);line-height:1.5}
+
+.swatches{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.sw{display:flex;align-items:center;gap:6px}
+.sw-d{width:16px;height:16px;border-radius:1px;border:1px solid rgb(0 0 0/.08)}
+.sw-l{font-family:var(--mono);font-size:.5rem;color:var(--ash)}
+
+.specimen{margin:10px 0;padding:12px 0;border-bottom:1px solid var(--rule-soft)}
+.spec-n{font-family:var(--mono);font-size:.48rem;color:var(--ash-light);letter-spacing:.06em;margin-bottom:3px}
+
+/* ═══ PLATE SYSTEM ═══ */
+.plate{margin:20px 0;padding:16px;background:var(--paper);border:1px solid var(--rule);position:relative;overflow:hidden}
+.plate-n{font-family:var(--mono);font-size:.48rem;color:var(--rubric);position:absolute;top:6px;left:8px;letter-spacing:.08em;z-index:2}
+.plate-t{font-family:var(--italic);font-style:italic;font-size:.68rem;color:var(--ash);position:absolute;top:6px;right:8px;z-index:2}
+.plate-c{font-family:var(--italic);font-style:italic;font-size:.62rem;color:var(--ash);text-align:center;margin-top:8px}
+.plate svg{display:block;margin:0 auto}
+.plate-code{position:absolute;inset:0;font-family:var(--mono);font-size:.44rem;line-height:1.25;color:var(--ghost);opacity:.16;padding:24px 12px;pointer-events:none;white-space:pre;overflow:hidden;z-index:0}
+
+/* Grid for catalog plates */
+.plate-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+@media(max-width:700px){.plate-grid{grid-template-columns:1fr}}
+.plate-grid .plate{margin:0;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+.ini{float:left;width:46px;height:46px;margin:2px 8px 4px 0}
+.ini svg{width:100%;height:100%}
+
+.catalog{margin:10px 0}
+.cat-row{display:flex;align-items:baseline;gap:6px;padding:2px 0;border-bottom:1px solid var(--rule-soft);font-size:.78rem}
+.cat-num{font-family:var(--mono);font-size:.55rem;color:var(--rubric);width:36px;flex-shrink:0}
+.cat-name{font-family:var(--serif);color:var(--ink)}
+.cat-desc{font-family:var(--italic);font-style:italic;font-size:.72rem;color:var(--ash);margin-left:auto;text-align:right}
+
+.rv{opacity:0;transform:translateY(10px);transition:opacity .8s var(--ease),transform .8s var(--ease)}.rv.vis{opacity:1;transform:none}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes spinR{to{transform:rotate(-360deg)}}
+@keyframes breathe{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.02);opacity:.88}}
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.8}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes sealBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.025)}}
+@keyframes hpDraw{to{stroke-dashoffset:0}}
+@keyframes hpRedraw{0%,92%{stroke-dashoffset:0}96%{stroke-dashoffset:var(--len)}100%{stroke-dashoffset:0}}
+@keyframes edgeDraw{to{stroke-dashoffset:0}}
+@keyframes pendulum{0%{transform:rotate(var(--a))}50%{transform:rotate(var(--b))}100%{transform:rotate(var(--a))}}
+@keyframes rippleOut{0%{r:0;opacity:.5}100%{r:60;opacity:0}}
+@keyframes sway{0%,100%{transform:rotate(calc(var(--sw,2) * -1deg))}50%{transform:rotate(calc(var(--sw,2) * 1deg))}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<div class="folio">
+<div class="folio-ghost"><div class="folio-ghost-inner" id="ghostText"></div></div>
+
+<h1>The Computational Manuscript</h1>
+<div class="subtitle">a design language for living documents</div>
+<div class="date">MMXXVI</div>
+<div class="hp" id="hp0"></div>
+
+<p><span class="ini"><svg viewBox="0 0 48 48"><rect width="48" height="48" fill="var(--ink)" rx="1"/><rect x="2" y="2" width="44" height="44" fill="none" stroke="var(--paper)" stroke-width=".5"/><rect x="4" y="4" width="40" height="40" fill="none" stroke="var(--paper)" stroke-width=".25"/><circle cx="4" cy="4" r="1" fill="var(--paper)"/><circle cx="44" cy="4" r="1" fill="var(--paper)"/><circle cx="4" cy="44" r="1" fill="var(--paper)"/><circle cx="44" cy="44" r="1" fill="var(--paper)"/><path d="M8,38 Q14,30 12,24 Q10,18 16,14" fill="none" stroke="var(--paper)" stroke-width=".45" opacity=".4"/><text x="24" y="36" font-family="'EB Garamond',Georgia,serif" font-size="28" font-weight="500" fill="var(--paper)" text-anchor="middle">T</text></svg></span>his document describes a design language that holds three tensions simultaneously: <strong>sacred and technical</strong>, <strong>precise and human</strong>, <strong>still and alive</strong>. It emerged from the construction of thirty-six animated geometric plates, a prose treatise on self-similarity, and a shared infrastructure of ornamental artefacts. The language is called the <em>computational manuscript</em> — code given the hierarchy, gravity, and page-furniture of an illuminated treatise. Every principle it describes, it performs. The page you are reading is the design language.</p>
+
+<div class="orn">◆ · ◇ · ◆</div>
+
+<h2><span class="n">§1</span> The Three Tensions</h2>
+
+<div class="principle"><div class="principle-l">Tension I — Sacred &amp; Technical</div><div class="principle-t">The content is mathematical, algorithmic, geometric — but the presentation carries the weight of an illuminated manuscript. A Lorenz attractor is rendered with the same care as a chapter of scripture. The page treats its subjects with devotion.</div></div>
+
+<div class="principle"><div class="principle-l">Tension II — Precise &amp; Human</div><div class="principle-t">Every curve is computed, but every surface feels <em>written</em>. A <code>mulberry32</code> PRNG seeds authored imperfection: corner radii vary ±0.8px, stroke widths drift ±0.15, control points wobble ±1–5px. The geometry was plotted, not drawn by CAD.</div></div>
+
+<div class="principle"><div class="principle-l">Tension III — Still &amp; Alive</div><div class="principle-t"><strong>Motion is the medium, not a polish layer.</strong> Orrery rings rotate once per 55 seconds. Pendulums swing at 8–20 second periods. The code ghost scrolls. Headpieces redraw themselves. Without continuous motion, the aesthetic collapses into a static costume.</div></div>
+
+<div class="orn">✦ · ◆ · ✦</div>
+
+<h2><span class="n">§2</span> The Paper</h2>
+<p>The page is not white. It is <em>paper</em> — warm, uneven, grained. Three systems: a layered radial gradient (exposure at upper-left 30% 8%, fill at lower-right 70% 92%), an SVG feTurbulence grain (fractalNoise, 0.65 freq, 6 octaves, <strong>18% opacity</strong>, <code>mix-blend-mode: multiply</code>), and a radial vignette (transparent center to 8% black at edges). The folio floats on a dark surround — a manuscript on a scholar's desk.</p>
+
+<div class="swatches">
+<div class="sw"><div class="sw-d" style="background:#ece6dc"></div><span class="sw-l">--paper #ece6dc</span></div>
+<div class="sw"><div class="sw-d" style="background:#e2dbd0"></div><span class="sw-l">--paper-mid #e2dbd0</span></div>
+<div class="sw"><div class="sw-d" style="background:#f0ebe0"></div><span class="sw-l">--paper-warm #f0ebe0</span></div>
+</div>
+
+<div class="orn">◇ · ◆ · ◇</div>
+
+<h2><span class="n">§3</span> The Ink</h2>
+<div class="swatches">
+<div class="sw"><div class="sw-d" style="background:#16130f"></div><span class="sw-l">--ink #16130f</span></div>
+<div class="sw"><div class="sw-d" style="background:#3a342c"></div><span class="sw-l">--ink-light #3a342c</span></div>
+<div class="sw"><div class="sw-d" style="background:#6c645d"></div><span class="sw-l">--ash #6c645d</span></div>
+<div class="sw"><div class="sw-d" style="background:#9e9589"></div><span class="sw-l">--ash-light #9e9589</span></div>
+<div class="sw"><div class="sw-d" style="background:#c4bdb3"></div><span class="sw-l">--ghost #c4bdb3</span></div>
+<div class="sw"><div class="sw-d" style="background:#8b2d23"></div><span class="sw-l">--rubric #8b2d23 · structural emphasis only</span></div>
+</div>
+
+<div class="principle"><div class="principle-l">The Rule of Rubric</div><div class="principle-t">Rubric marks the skeleton: section numbers (§1), plate numerals (fig i), key values (φ, π), the ampersand (&amp;), the date MMXXVI. Never decoration. Never hover states. Never backgrounds.</div></div>
+
+<div class="orn">◆ · ✦ · ◆</div>
+
+<h2><span class="n">§4</span> The Letter</h2>
+<div class="specimen"><div class="spec-n">DISPLAY — Cormorant SC · small-caps · tracked</div>
+<div style="font-family:var(--display);font-variant:small-caps;font-size:1.3rem;letter-spacing:.14em;color:var(--ink)">On the Unfolding of Form</div></div>
+<div class="specimen"><div class="spec-n">BODY — EB Garamond · justified · 1.65 leading</div>
+<div style="font-family:var(--serif);font-size:1rem;color:var(--ink-light);line-height:1.65;text-align:justify">Consider the fern: each frond is a repetition of the whole, scaled and rotated, placed by a rule that does not know what it produces.</div></div>
+<div class="specimen"><div class="spec-n">ITALIC — Cormorant Garamond · captions &amp; marginalia</div>
+<div style="font-family:var(--italic);font-style:italic;font-size:.92rem;color:var(--ash)">a scriptorium of moving forms · the geometry of the spirit made visible</div></div>
+<div class="specimen"><div class="spec-n">CODE — JetBrains Mono · ghost underlay &amp; metadata</div>
+<div style="font-family:var(--mono);font-size:.72rem;color:var(--ash);font-variant-numeric:oldstyle-nums">mulberry32(seed) · feTurbulence(0.65, 6) · stroke-dashoffset: 0</div></div>
+
+<div class="orn">✦ · ◇ · ✦</div>
+
+<h2><span class="n">§5</span> The Motion</h2>
+<p><strong>Five categories:</strong> astronomical rotation (40–140s, linear), the breath (6–18s, ease-in-out, unique phase per element), the trace (rAF following a computed curve), self-drawing paths (stroke-dashoffset 1.2–2.6s), and the redraw (headpieces cycling every 30s). Plus the ghost scroll — the code that builds the view, scrolling at 180s per loop behind the content.</p>
+
+<div class="hp" id="hp1"></div>
+<div class="orn">◆ · ◇ · ◆</div>
+
+<h2><span class="n">§6</span> On the Unfolding of Form</h2>
+<p>Five plates embedded in a prose treatise on recursion, self-similarity, and the geometry of living things.</p>
+<div class="plate-grid">
+<div class="plate rv"><span class="plate-n">T-I</span><span class="plate-t">The Orbital Field</span><svg id="treatise-orbital" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">T-II</span><span class="plate-t">The Spiral of Accumulation</span><svg id="treatise-spiral" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">T-III</span><span class="plate-t">The Lattice of Division</span><svg id="treatise-lattice" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">T-IV</span><span class="plate-t">The Pendulum Choir</span><svg id="treatise-pendulum" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">T-V</span><span class="plate-t">The Seed</span><svg id="treatise-seed" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">seal</span><span class="plate-t">The Seal</span><svg id="seal-svg" viewBox="0 0 200 200" width="200" height="200"></svg></div>
+</div>
+<div class="orn">✦ · ◆ · ✦</div>
+<h2><span class="n">§7</span> Twelve Movements for Ink &amp; Light</h2>
+<p>Twelve animated plates, all JS-generated via <code>mulberry32(42)</code> jitter.</p>
+<div class="plate-grid">
+<div class="plate rv"><span class="plate-n">I</span><span class="plate-t">The Orrery</span><svg id="orrery" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">II</span><span class="plate-t">The Loom</span><svg id="loom" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">III</span><span class="plate-t">The Tide</span><svg id="tide" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">IV</span><span class="plate-t">The Choir</span><svg id="choir" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">V</span><span class="plate-t">The Seed</span><svg id="seed" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">VI</span><span class="plate-t">The Gasket</span><svg id="gasket" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">VII</span><span class="plate-t">The Compass Rose</span><svg id="compass" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">VIII</span><span class="plate-t">The Hourglass</span><svg id="hourglass" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">IX</span><span class="plate-t">The Helix</span><svg id="helix" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">X</span><span class="plate-t">The Cantor Dust</span><svg id="cantor" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XI</span><span class="plate-t">The Reflection</span><svg id="reflection" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XII</span><span class="plate-t">The Attractor</span><svg id="attractor" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+</div>
+<div class="orn">◆ · ◇ · ◆</div>
+<h2><span class="n">§8</span> Twelve More Movements</h2>
+<p>Twelve further plates, seed 137, exploring projection, interference, and damped harmonics.</p>
+<div class="plate-grid">
+<div class="plate rv"><span class="plate-n">XIII</span><span class="plate-t">The Tessellation</span><svg id="tessellation" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XIV</span><span class="plate-t">The Meridian</span><svg id="meridian" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XV</span><span class="plate-t">The Cycloid</span><svg id="cycloid" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XVI</span><span class="plate-t">The Voronoi</span><svg id="voronoi" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XVII</span><span class="plate-t">The Moiré</span><svg id="moire" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XVIII</span><span class="plate-t">The Involute</span><svg id="involute" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XIX</span><span class="plate-t">The Harmonograph</span><svg id="harmonograph" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XX</span><span class="plate-t">The Epicycles</span><svg id="epicycles" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXI</span><span class="plate-t">The Catenary</span><svg id="catenary" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXII</span><span class="plate-t">The Diffusion</span><svg id="diffusion" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXIII</span><span class="plate-t">The Penumbra</span><svg id="penumbra" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXIV</span><span class="plate-t">The Wavefunction</span><svg id="wavefunction" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+</div>
+<div class="orn">✦ · ◇ · ✦</div>
+<h2><span class="n">§9</span> Twelve Further Artefacts</h2>
+<p>Data-driven artefacts from the shared <code>movement-library</code>. Each is a reusable ornamental form.</p>
+<div class="plate-grid">
+<div class="plate rv"><span class="plate-n">XXV</span><span class="plate-t">The Astrolabe</span><svg id="vol3-astrolabe" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXVI</span><span class="plate-t">The Vesica</span><svg id="vol3-vesica" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXVII</span><span class="plate-t">The Rose Window</span><svg id="vol3-roseWindow" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXVIII</span><span class="plate-t">The Labyrinth</span><svg id="vol3-labyrinth" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXIX</span><span class="plate-t">The Eclipse Engine</span><svg id="vol3-eclipseEngine" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXX</span><span class="plate-t">The Aether Knot</span><svg id="vol3-aetherKnot" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXXI</span><span class="plate-t">The Chaplet</span><svg id="vol3-chaplet" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXXII</span><span class="plate-t">The Water Clock</span><svg id="vol3-waterClock" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXXIII</span><span class="plate-t">The Pilgrim Star</span><svg id="vol3-pilgrimStar" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXXIV</span><span class="plate-t">The Lantern Window</span><svg id="vol3-lanternWindow" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXXV</span><span class="plate-t">The Sigil Bloom</span><svg id="vol3-sigilBloom" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+<div class="plate rv"><span class="plate-n">XXXVI</span><span class="plate-t">The Memory Field</span><svg id="vol3-memoryField" viewBox="0 0 300 220" width="300" height="220"></svg></div>
+</div>
+<div class="orn">◆ · ✦ · ◆</div>
+
+<h2><span class="n">§10</span> Colophon</h2>
+<p style="text-align:center;font-family:var(--italic);font-style:italic;color:var(--ash)">The page is the religion. The geometry is the miracle.<br>The code is the scripture. The motion is the prayer.</p>
+<div style="text-align:center;margin:20px 0 0"><svg id="colophon-seal" viewBox="0 0 60 60" width="60" height="60"></svg></div>
+<div style="text-align:center;font-family:var(--mono);font-size:.48rem;color:var(--ash-light);letter-spacing:.06em;margin-top:6px">the manuscript computes · nothing is still</div>
+<div style="text-align:center;font-family:var(--mono);font-size:.42rem;color:var(--ghost);letter-spacing:.04em;margin-top:12px">MMXXVI</div>
+<script>
+var MovementLibrary;
+(function (MovementLibrary) {
+    const NS = 'http://www.w3.org/2000/svg';
+    const animators = [];
+    let rafId = 0;
+    const defaults = {
+        astrolabe: { viewBox: '0 0 320 320', width: 292, height: 292 },
+        vesica: { viewBox: '0 0 320 320', width: 292, height: 292 },
+        roseWindow: { viewBox: '0 0 320 320', width: 292, height: 292 },
+        labyrinth: { viewBox: '0 0 320 320', width: 292, height: 292 },
+        eclipseEngine: { viewBox: '0 0 380 220', width: 360, height: 210 },
+        aetherKnot: { viewBox: '0 0 360 220', width: 340, height: 210 },
+        chaplet: { viewBox: '0 0 320 320', width: 292, height: 292 },
+        waterClock: { viewBox: '0 0 220 360', width: 198, height: 324 },
+        pilgrimStar: { viewBox: '0 0 320 320', width: 292, height: 292 },
+        lanternWindow: { viewBox: '0 0 220 360', width: 198, height: 324 },
+        sigilBloom: { viewBox: '0 0 320 320', width: 292, height: 292 },
+        memoryField: { viewBox: '0 0 380 240', width: 360, height: 228 },
+    };
+    function loop(time) {
+        rafId = window.requestAnimationFrame(loop);
+        if (document.hidden)
+            return;
+        for (const animator of animators) {
+            const plate = animator.element.closest('.plate, .geometric-plate, .artefact-plate');
+            if (plate && !plate.classList.contains('is-active') && !plate.classList.contains('vis'))
+                continue;
+            animator.update(time);
+        }
+    }
+    function ensureLoop() {
+        if (!rafId) {
+            rafId = window.requestAnimationFrame(loop);
+        }
+    }
+    function addAnimator(element, update) {
+        animators.push({ element, update });
+        ensureLoop();
+    }
+    function mulberry32(seed) {
+        let a = seed >>> 0;
+        return function () {
+            a |= 0;
+            a = (a + 0x6D2B79F5) | 0;
+            let t = Math.imul(a ^ (a >>> 15), 1 | a);
+            t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+            return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+    }
+    function create(tag, attrs = {}, parent) {
+        const node = document.createElementNS(NS, tag);
+        for (const [key, value] of Object.entries(attrs)) {
+            node.setAttribute(key, String(value));
+        }
+        if (parent)
+            parent.appendChild(node);
+        return node;
+    }
+    function setAttrs(node, attrs) {
+        for (const [key, value] of Object.entries(attrs))
+            node.setAttribute(key, String(value));
+    }
+    function clear(svg) {
+        while (svg.firstChild)
+            svg.removeChild(svg.firstChild);
+    }
+    function polar(cx, cy, radius, angle) {
+        return [cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius];
+    }
+    function pointRing(cx, cy, outer, inner, count, rotation = -Math.PI / 2) {
+        let points = '';
+        for (let i = 0; i < count * 2; i++) {
+            const angle = rotation + (Math.PI * i) / count;
+            const radius = i % 2 === 0 ? outer : inner;
+            const [x, y] = polar(cx, cy, radius, angle);
+            points += `${x.toFixed(1)},${y.toFixed(1)} `;
+        }
+        return points.trim();
+    }
+    function sampledPath(sample, steps = 160, closed = false) {
+        let d = '';
+        for (let i = 0; i <= steps; i++) {
+            const t = i / steps;
+            const [x, y] = sample(t);
+            d += `${i === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)}`;
+        }
+        if (closed)
+            d += 'Z';
+        return d;
+    }
+    function arcPath(cx, cy, radius, startAngle, endAngle) {
+        const [x1, y1] = polar(cx, cy, radius, startAngle);
+        const [x2, y2] = polar(cx, cy, radius, endAngle);
+        const large = Math.abs(endAngle - startAngle) > Math.PI ? 1 : 0;
+        const sweep = endAngle > startAngle ? 1 : 0;
+        return `M${x1.toFixed(2)},${y1.toFixed(2)} A${radius},${radius} 0 ${large} ${sweep} ${x2.toFixed(2)},${y2.toFixed(2)}`;
+    }
+    function drawClass(node) {
+        node.classList.add('relic-draw');
+    }
+    function drawLater(scope) {
+        scope.querySelectorAll('.relic-draw').forEach((path) => {
+            try {
+                const length = path.getTotalLength();
+                path.style.strokeDasharray = `${length}`;
+                path.style.strokeDashoffset = `${length}`;
+            }
+            catch (error) {
+                // No total length available for this geometry. Ignore it.
+            }
+        });
+    }
+    function rootGroup(svg, className) {
+        return create('g', { class: className }, svg);
+    }
+    function addText(svg, x, y, text, rubric = false, size = 10, anchor = 'start') {
+        const node = create('text', {
+            x,
+            y,
+            fill: rubric ? 'var(--rubric)' : 'var(--ink-soft)',
+            'font-family': "'EB Garamond', Georgia, serif",
+            'font-size': size,
+            'font-style': 'italic',
+            'text-anchor': anchor,
+            opacity: rubric ? 0.72 : 0.52,
+        }, svg);
+        node.textContent = text;
+    }
+    function ornamentRing(svg, cx, cy, radius, count, seed) {
+        const rng = mulberry32(seed);
+        const g = create('g', { opacity: 0.7 }, svg);
+        for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2 - Math.PI / 2;
+            const [x, y] = polar(cx, cy, radius + (rng() - 0.5) * 1.8, angle);
+            const symbol = i % 2 === 0 ? pointRing(x, y, 3.1, 1.5, 4, angle) : pointRing(x, y, 2.3, 1.2, 4, angle + Math.PI / 4);
+            create('polygon', {
+                points: symbol,
+                fill: i % 2 === 0 ? 'none' : 'var(--ink)',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.32,
+            }, g);
+        }
+    }
+    function renderAstrolabe(svg, seed) {
+        clear(svg);
+        const rng = mulberry32(seed);
+        const c = 160;
+        const outer = rootGroup(svg, 'relic-spin-slow');
+        const inner = rootGroup(svg, 'relic-spin-reverse');
+        const staticLayer = create('g', {}, svg);
+        [138, 120, 102, 82, 58].forEach((r, i) => {
+            const circle = create('circle', {
+                cx: c,
+                cy: c,
+                r,
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': i === 0 ? 0.8 : 0.4,
+                opacity: i === 0 ? 0.95 : 0.62,
+            }, outer);
+            drawClass(circle);
+        });
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 - Math.PI / 2;
+            const [x1, y1] = polar(c, c, 26, angle);
+            const [x2, y2] = polar(c, c, 134, angle);
+            const line = create('line', {
+                x1, y1, x2, y2,
+                stroke: 'var(--ink)',
+                'stroke-width': i % 2 === 0 ? 0.55 : 0.22,
+                opacity: i % 2 === 0 ? 0.78 : 0.42,
+            }, staticLayer);
+            drawClass(line);
+        }
+        for (let i = 0; i < 5; i++) {
+            const start = -Math.PI * 0.12 + i * 0.18;
+            const end = Math.PI * 1.18 - i * 0.12;
+            const arc = create('path', {
+                d: arcPath(c, c, 36 + i * 18, start, end),
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.32,
+                opacity: 0.48,
+            }, inner);
+            drawClass(arc);
+        }
+        const rete = create('polygon', {
+            points: pointRing(c, c, 72, 28, 8),
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.8,
+            opacity: 0.84,
+        }, inner);
+        drawClass(rete);
+        for (let i = 0; i < 12; i++) {
+            const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+            const [x, y] = polar(c, c, 92 + (rng() - 0.5) * 2, angle);
+            create('circle', {
+                cx: x,
+                cy: y,
+                r: 2 + rng() * 1.1,
+                fill: 'var(--ink)',
+                opacity: 0.88,
+            }, inner);
+        }
+        const center = create('circle', {
+            cx: c,
+            cy: c,
+            r: 10,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.4,
+            class: 'relic-breathe',
+        }, svg);
+        drawClass(center);
+        ornamentRing(svg, c, c, 148, 12, seed + 17);
+        addText(svg, 250, 34, 'altitude · declination', true, 8, 'end');
+        addText(svg, 70, 302, 'rete in contrary motion', false, 8, 'start');
+        drawLater(svg);
+    }
+    function renderVesica(svg, seed) {
+        clear(svg);
+        const rng = mulberry32(seed);
+        const cx = 160;
+        const cy = 160;
+        const radius = 92;
+        const overlap = 52;
+        const left = create('g', { class: 'relic-breathe' }, svg);
+        const right = create('g', { class: 'relic-breathe relic-delay-2' }, svg);
+        const c1 = create('circle', {
+            cx: cx - overlap,
+            cy,
+            r: radius,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.8,
+            opacity: 0.9,
+        }, left);
+        drawClass(c1);
+        const c2 = create('circle', {
+            cx: cx + overlap,
+            cy,
+            r: radius,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.8,
+            opacity: 0.9,
+        }, right);
+        drawClass(c2);
+        const vesica = create('path', {
+            d: `M${cx.toFixed(1)},${(cy - 76).toFixed(1)} C${(cx - 42).toFixed(1)},${(cy - 56).toFixed(1)} ${(cx - 42).toFixed(1)},${(cy + 56).toFixed(1)} ${cx.toFixed(1)},${(cy + 76).toFixed(1)} C${(cx + 42).toFixed(1)},${(cy + 56).toFixed(1)} ${(cx + 42).toFixed(1)},${(cy - 56).toFixed(1)} ${cx.toFixed(1)},${(cy - 76).toFixed(1)}Z`,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.85,
+            opacity: 0.9,
+        }, svg);
+        drawClass(vesica);
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const [x, y] = polar(cx, cy, 22 + i * 9.5, angle + (i % 2) * 0.14);
+            const dot = create('circle', {
+                cx: x,
+                cy: y,
+                r: 1.6 + rng() * 1.1,
+                fill: 'var(--ink)',
+                opacity: 0.75,
+            }, svg);
+            if (i % 2 === 0)
+                dot.classList.add('relic-float');
+        }
+        const almondStar = create('polygon', {
+            points: pointRing(cx, cy, 18, 7, 8),
+            fill: 'var(--ink)',
+            opacity: 0.88,
+            class: 'relic-pulse',
+        }, svg);
+        drawClass(almondStar);
+        [-112, 112].forEach((offset, idx) => {
+            const arc = create('path', {
+                d: arcPath(cx, cy, 132, idx === 0 ? Math.PI * 0.72 : -Math.PI * 0.28, idx === 0 ? Math.PI * 1.28 : Math.PI * 0.28),
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.28,
+                opacity: 0.38,
+            }, svg);
+            drawClass(arc);
+            const [tx, ty] = polar(cx, cy, 134, idx === 0 ? Math.PI : 0);
+            create('circle', { cx: tx, cy: ty, r: 2.4, fill: 'var(--ink)' }, svg);
+        });
+        addText(svg, 160, 36, 'intersection as revelation', true, 8, 'middle');
+        addText(svg, 160, 304, 'two circles, one interior door', false, 8, 'middle');
+        drawLater(svg);
+    }
+    function renderRoseWindow(svg, seed) {
+        clear(svg);
+        const rng = mulberry32(seed);
+        const c = 160;
+        const outer = rootGroup(svg, 'relic-spin-slow');
+        const inner = rootGroup(svg, 'relic-spin-reverse');
+        const petals = 12;
+        [138, 112, 84, 54, 28].forEach((r, i) => {
+            const circle = create('circle', {
+                cx: c,
+                cy: c,
+                r,
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': i === 0 ? 0.7 : 0.3,
+                opacity: 0.78,
+            }, outer);
+            drawClass(circle);
+        });
+        for (let i = 0; i < petals; i++) {
+            const angle = (i / petals) * Math.PI * 2 - Math.PI / 2;
+            const [x, y] = polar(c, c, 70, angle);
+            const p = create('circle', {
+                cx: x,
+                cy: y,
+                r: 34 + rng() * 1.6,
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.55,
+                opacity: 0.85,
+            }, inner);
+            drawClass(p);
+        }
+        for (let i = 0; i < petals; i++) {
+            const angle = (i / petals) * Math.PI * 2 - Math.PI / 2;
+            const [x1, y1] = polar(c, c, 26, angle);
+            const [x2, y2] = polar(c, c, 136, angle);
+            const spoke = create('line', {
+                x1,
+                y1,
+                x2,
+                y2,
+                stroke: 'var(--ink)',
+                'stroke-width': i % 3 === 0 ? 0.45 : 0.22,
+                opacity: i % 3 === 0 ? 0.62 : 0.34,
+            }, svg);
+            drawClass(spoke);
+        }
+        create('polygon', {
+            points: pointRing(c, c, 22, 9, 8),
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.7,
+            class: 'relic-pulse',
+        }, svg);
+        ornamentRing(svg, c, c, 148, 16, seed + 40);
+        addText(svg, 160, 304, 'tracery turning on a hidden axle', false, 8, 'middle');
+        drawLater(svg);
+    }
+    function renderLabyrinth(svg, seed) {
+        clear(svg);
+        const rng = mulberry32(seed);
+        const cx = 160;
+        const cy = 160;
+        const g = create('g', { class: 'relic-breathe' }, svg);
+        const segments = [];
+        let left = 42;
+        let right = 278;
+        let top = 42;
+        let bottom = 278;
+        let horizontal = true;
+        while (right - left > 28 && bottom - top > 28) {
+            if (horizontal) {
+                segments.push([left, top, right, top]);
+                segments.push([right, top, right, bottom - 18]);
+                top += 18 + rng() * 8;
+                right -= 18 + rng() * 8;
+            }
+            else {
+                segments.push([right, bottom, left + 18, bottom]);
+                segments.push([left, bottom, left, top]);
+                bottom -= 18 + rng() * 8;
+                left += 18 + rng() * 8;
+            }
+            horizontal = !horizontal;
+        }
+        for (const [x1, y1, x2, y2] of segments) {
+            const line = create('line', {
+                x1: x1.toFixed(1),
+                y1: y1.toFixed(1),
+                x2: x2.toFixed(1),
+                y2: y2.toFixed(1),
+                stroke: 'var(--ink)',
+                'stroke-width': 1.0,
+                'stroke-linecap': 'square',
+                opacity: 0.88,
+            }, g);
+            drawClass(line);
+        }
+        for (let i = 0; i < 4; i++) {
+            const square = create('rect', {
+                x: 52 + i * 22,
+                y: 52 + i * 22,
+                width: 216 - i * 44,
+                height: 216 - i * 44,
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.24,
+                opacity: 0.32,
+            }, svg);
+            drawClass(square);
+        }
+        create('polygon', {
+            points: pointRing(cx, cy, 14, 5.4, 4, Math.PI / 4),
+            fill: 'var(--ink)',
+            opacity: 0.84,
+            class: 'relic-pulse',
+        }, svg);
+        addText(svg, 160, 26, 'recursion as pilgrimage', true, 8, 'middle');
+        addText(svg, 160, 304, 'every turn is still inward', false, 8, 'middle');
+        drawLater(svg);
+    }
+    function renderEclipseEngine(svg, seed) {
+        clear(svg);
+        const cx = 190;
+        const cy = 110;
+        const outer = create('g', {}, svg);
+        const moon = create('g', { class: 'relic-shadow-disc' }, svg);
+        [86, 62, 42].forEach((r, i) => {
+            const circle = create('circle', {
+                cx,
+                cy,
+                r,
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': i === 0 ? 0.7 : 0.28,
+                opacity: 0.75,
+            }, outer);
+            drawClass(circle);
+        });
+        for (let i = 0; i < 18; i++) {
+            const angle = -Math.PI / 2 + (i / 18) * Math.PI * 2;
+            const [x1, y1] = polar(cx, cy, 94, angle);
+            const [x2, y2] = polar(cx, cy, 128, angle);
+            const line = create('line', {
+                x1,
+                y1,
+                x2,
+                y2,
+                stroke: 'var(--ink)',
+                'stroke-width': i % 3 === 0 ? 0.4 : 0.18,
+                opacity: 0.28,
+            }, outer);
+            drawClass(line);
+        }
+        create('circle', {
+            cx: 78,
+            cy,
+            r: 48,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.55,
+            opacity: 0.72,
+        }, outer);
+        create('line', {
+            x1: 18,
+            y1: cy,
+            x2: 356,
+            y2: cy,
+            stroke: 'var(--ink)',
+            'stroke-width': 0.25,
+            opacity: 0.32,
+        }, outer);
+        create('circle', {
+            cx: cx + 32,
+            cy,
+            r: 30,
+            fill: 'var(--paper)',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.65,
+            opacity: 0.96,
+        }, moon);
+        const corona = create('circle', {
+            cx,
+            cy,
+            r: 24,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.4,
+            opacity: 0.4,
+            class: 'relic-pulse',
+        }, svg);
+        drawClass(corona);
+        addText(svg, 30, 28, 'penumbra / occlusion / return', true, 8, 'start');
+        addText(svg, 330, 198, 'shadow made measurable', false, 8, 'end');
+        drawLater(svg);
+        addAnimator(svg, (time) => {
+            const phase = (time * 0.00018 + seed * 0.03) % 1;
+            const x = 148 + Math.sin(phase * Math.PI * 2) * 68;
+            setAttrs(moon.firstElementChild, { cx: x.toFixed(2), cy: cy });
+        });
+    }
+    function renderAetherKnot(svg, seed) {
+        clear(svg);
+        const cx = 180;
+        const cy = 110;
+        const pathA = sampledPath((t) => {
+            const a = t * Math.PI * 2;
+            const x = cx + 112 * Math.sin(a);
+            const y = cy + 58 * Math.sin(a) * Math.cos(a);
+            return [x, y];
+        }, 260);
+        const pathB = sampledPath((t) => {
+            const a = t * Math.PI * 2;
+            const x = cx + 88 * Math.sin(a + Math.PI / 2);
+            const y = cy + 36 * Math.sin(a + Math.PI / 2) * Math.cos(a + Math.PI / 2);
+            return [x, y];
+        }, 220);
+        const p1 = create('path', {
+            d: pathA,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.95,
+            opacity: 0.9,
+        }, svg);
+        drawClass(p1);
+        const p2 = create('path', {
+            d: pathB,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.35,
+            opacity: 0.38,
+        }, svg);
+        drawClass(p2);
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const [x, y] = polar(cx, cy, 86, angle);
+            create('circle', { cx: x, cy: y, r: 2.2, fill: 'var(--ink)', opacity: 0.78 }, svg);
+        }
+        create('line', { x1: 26, y1: cy, x2: 334, y2: cy, stroke: 'var(--ink)', 'stroke-width': 0.18, opacity: 0.25 }, svg);
+        create('line', { x1: cx, y1: 24, x2: cx, y2: 196, stroke: 'var(--ink)', 'stroke-width': 0.18, opacity: 0.25 }, svg);
+        const tracer = create('circle', { cx: cx + 112, cy, r: 3.2, fill: 'var(--ink)' }, svg);
+        addText(svg, 26, 28, 'braid of returning curves', true, 8, 'start');
+        addText(svg, 334, 198, 'the knot remembers its own passage', false, 8, 'end');
+        drawLater(svg);
+        addAnimator(svg, (time) => {
+            const t = ((time * 0.00008) + seed * 0.11) % 1;
+            const a = t * Math.PI * 2;
+            const x = cx + 112 * Math.sin(a);
+            const y = cy + 58 * Math.sin(a) * Math.cos(a);
+            setAttrs(tracer, { cx: x.toFixed(2), cy: y.toFixed(2) });
+        });
+    }
+    function renderChaplet(svg, seed) {
+        clear(svg);
+        const rng = mulberry32(seed);
+        const c = 160;
+        const rosary = rootGroup(svg, 'relic-spin-slow');
+        create('circle', {
+            cx: c,
+            cy: c,
+            r: 104,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.55,
+            opacity: 0.48,
+        }, rosary);
+        for (let i = 0; i < 36; i++) {
+            const angle = (i / 36) * Math.PI * 2 - Math.PI / 2;
+            const [x, y] = polar(c, c, 104, angle);
+            create('circle', {
+                cx: x,
+                cy: y,
+                r: i % 9 === 0 ? 5 : 3.2,
+                fill: i % 9 === 0 ? 'none' : 'var(--ink)',
+                stroke: 'var(--ink)',
+                'stroke-width': i % 9 === 0 ? 0.45 : 0.18,
+                opacity: 0.85,
+            }, rosary);
+        }
+        const inner = create('g', { class: 'relic-spin-reverse' }, svg);
+        create('polygon', {
+            points: pointRing(c, c, 44, 16, 8),
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.65,
+            opacity: 0.82,
+        }, inner);
+        [36, 58, 80].forEach((r) => {
+            const arc = create('path', {
+                d: arcPath(c, c, r, -Math.PI * 0.65, Math.PI * 0.65),
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.28,
+                opacity: 0.4,
+            }, inner);
+            drawClass(arc);
+        });
+        const chain = create('g', { class: 'relic-sway' }, svg);
+        for (let i = 0; i < 7; i++) {
+            create('line', {
+                x1: c,
+                y1: 214 + i * 12,
+                x2: c,
+                y2: 224 + i * 12,
+                stroke: 'var(--ink)',
+                'stroke-width': 0.38,
+                opacity: 0.8,
+            }, chain);
+            create('circle', { cx: c, cy: 230 + i * 12, r: i === 6 ? 5.2 : 2.2, fill: 'var(--ink)', opacity: 0.86 }, chain);
+        }
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2;
+            const [x, y] = polar(c, c, 68, angle);
+            create('circle', { cx: x, cy: y, r: 1.6 + rng() * 0.8, fill: 'var(--ink)', opacity: 0.7 }, svg);
+        }
+        addText(svg, 160, 28, 'counted by angle and breath', true, 8, 'middle');
+        addText(svg, 160, 304, 'thirty-six beads, one returning loop', false, 8, 'middle');
+        drawLater(svg);
+    }
+    function renderWaterClock(svg, seed) {
+        clear(svg);
+        const cx = 110;
+        const vessel = create('g', {}, svg);
+        const drops = create('g', {}, svg);
+        const ripples = create('g', {}, svg);
+        const outline1 = create('path', {
+            d: 'M48,28 C48,112 74,138 96,176 C116,210 116,262 96,312',
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.9,
+            opacity: 0.88,
+        }, vessel);
+        drawClass(outline1);
+        const outline2 = create('path', {
+            d: 'M172,28 C172,112 146,138 124,176 C104,210 104,262 124,312',
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.9,
+            opacity: 0.88,
+        }, vessel);
+        drawClass(outline2);
+        ['28', '312'].forEach((y) => {
+            const line = create('line', {
+                x1: 48,
+                y1: y,
+                x2: 172,
+                y2: y,
+                stroke: 'var(--ink)',
+                'stroke-width': 1.05,
+            }, vessel);
+            drawClass(line);
+        });
+        create('circle', { cx, cy: 176, r: 5.2, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.35, opacity: 0.8 }, vessel);
+        for (let i = 0; i < 4; i++) {
+            create('ellipse', {
+                cx,
+                cy: 274 + i * 12,
+                rx: 28 + i * 12,
+                ry: 6 + i * 1.4,
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.24,
+                opacity: 0.3 + i * 0.06,
+            }, ripples);
+        }
+        const falling = [];
+        for (let i = 0; i < 6; i++) {
+            const dot = create('circle', { cx, cy: 114 - i * 18, r: 1.9, fill: 'var(--ink)', opacity: 0.65 }, drops);
+            falling.push(dot);
+        }
+        addText(svg, 110, 18, 'gravity writing time', true, 8, 'middle');
+        addText(svg, 110, 346, 'drip / pool / measure / repeat', false, 8, 'middle');
+        drawLater(svg);
+        addAnimator(svg, (time) => {
+            const base = time * 0.00018 + seed * 0.09;
+            falling.forEach((dot, i) => {
+                const phase = (base + i * 0.17) % 1;
+                const y = 108 + phase * 120;
+                const x = cx + Math.sin(phase * Math.PI * 4 + i) * 4;
+                const opacity = phase < 0.94 ? 0.6 : 0.15;
+                setAttrs(dot, { cx: x.toFixed(2), cy: y.toFixed(2), opacity: opacity.toFixed(2) });
+            });
+            ripples.childNodes.forEach((node, i) => {
+                const ripple = node;
+                const phase = ((base * 0.7) + i * 0.14) % 1;
+                setAttrs(ripple, {
+                    rx: (24 + i * 11 + phase * 12).toFixed(2),
+                    opacity: (0.12 + (1 - phase) * 0.22).toFixed(2),
+                });
+            });
+        });
+    }
+    function renderPilgrimStar(svg, seed) {
+        clear(svg);
+        const rng = mulberry32(seed);
+        const c = 160;
+        const orbits = rootGroup(svg, 'relic-spin-slow');
+        const field = rootGroup(svg, 'relic-spin-reverse');
+        [132, 98, 70, 42].forEach((r, i) => {
+            const circle = create('circle', {
+                cx: c,
+                cy: c,
+                r,
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': i === 0 ? 0.65 : 0.28,
+                opacity: 0.72,
+            }, orbits);
+            drawClass(circle);
+        });
+        const star = create('polygon', {
+            points: pointRing(c, c, 78, 24, 8),
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.9,
+            opacity: 0.86,
+        }, svg);
+        drawClass(star);
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 - Math.PI / 2;
+            const [x2, y2] = polar(c, c, 126, angle);
+            const line = create('line', {
+                x1: c,
+                y1: c,
+                x2: x2.toFixed(1),
+                y2: y2.toFixed(1),
+                stroke: 'var(--ink)',
+                'stroke-width': i % 2 === 0 ? 0.44 : 0.22,
+                opacity: i % 2 === 0 ? 0.72 : 0.38,
+            }, svg);
+            drawClass(line);
+            create('circle', { cx: x2, cy: y2, r: i % 2 === 0 ? 3.2 : 2.1, fill: 'var(--ink)', opacity: 0.86 }, field);
+        }
+        for (let i = 0; i < 14; i++) {
+            const angle = (i / 14) * Math.PI * 2 + rng() * 0.14;
+            const [x, y] = polar(c, c, 48 + (i % 4) * 20, angle);
+            create('circle', { cx: x, cy: y, r: 1.2 + rng() * 1.6, fill: 'var(--ink)', opacity: 0.7 }, field);
+        }
+        create('polygon', {
+            points: pointRing(c, c, 18, 7, 8),
+            fill: 'var(--ink)',
+            opacity: 0.92,
+            class: 'relic-pulse',
+        }, svg);
+        addText(svg, 160, 22, 'route and constellation, same grammar', true, 8, 'middle');
+        addText(svg, 160, 304, 'the map inside the traveller', false, 8, 'middle');
+        drawLater(svg);
+    }
+    function renderLanternWindow(svg, seed) {
+        clear(svg);
+        const cx = 110;
+        const frame = create('g', {}, svg);
+        const light = create('g', { class: 'relic-breathe' }, svg);
+        const arch = create('path', {
+            d: 'M40,320 L40,118 C40,62 72,28 110,28 C148,28 180,62 180,118 L180,320',
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 1.1,
+            opacity: 0.9,
+        }, frame);
+        drawClass(arch);
+        [272, 232, 190, 146].forEach((y, i) => {
+            const line = create('line', {
+                x1: 58,
+                y1: y,
+                x2: 162,
+                y2: y,
+                stroke: 'var(--ink)',
+                'stroke-width': i === 0 ? 0.55 : 0.24,
+                opacity: i === 0 ? 0.52 : 0.3,
+            }, frame);
+            drawClass(line);
+        });
+        [66, 98, 122, 78].forEach((r, i) => {
+            const circle = create('circle', {
+                cx,
+                cy: 128,
+                r,
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': i === 0 ? 0.55 : 0.25,
+                opacity: 0.72 - i * 0.1,
+            }, light);
+            drawClass(circle);
+        });
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2 - Math.PI / 2;
+            const [x, y] = polar(cx, 128, 56, angle);
+            create('circle', { cx: x, cy: y, r: 21, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.4, opacity: 0.62 }, light);
+        }
+        create('polygon', {
+            points: pointRing(cx, 128, 16, 6, 8),
+            fill: 'var(--ink)',
+            opacity: 0.9,
+            class: 'relic-pulse',
+        }, light);
+        ornamentRing(svg, cx, 128, 146, 8, seed + 10);
+        addText(svg, 110, 18, 'light caught in stone geometry', true, 8, 'middle');
+        addText(svg, 110, 346, 'tracery as vessel', false, 8, 'middle');
+        drawLater(svg);
+    }
+    function renderSigilBloom(svg, seed) {
+        clear(svg);
+        const c = 160;
+        const outer = rootGroup(svg, 'relic-spin-slow');
+        const inner = rootGroup(svg, 'relic-spin-reverse');
+        for (let i = 0; i < 4; i++) {
+            const angle = (i / 4) * Math.PI * 2;
+            const [x, y] = polar(c, c, 78, angle);
+            const crescent = create('path', {
+                d: `M${x - 20},${y} A22,22 0 1 1 ${x + 20},${y} A15,15 0 1 0 ${x - 20},${y}`,
+                fill: i % 2 === 0 ? 'var(--ink)' : 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.55,
+                opacity: 0.85,
+            }, outer);
+            drawClass(crescent);
+            setAttrs(crescent, { transform: `rotate(${(angle * 180) / Math.PI}, ${x}, ${y})` });
+        }
+        const diamond = create('polygon', {
+            points: pointRing(c, c, 66, 18, 4, Math.PI / 4),
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.78,
+            opacity: 0.9,
+        }, inner);
+        drawClass(diamond);
+        [32, 52, 96, 122].forEach((r) => {
+            const circle = create('circle', { cx: c, cy: c, r, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.25, opacity: 0.36 }, svg);
+            drawClass(circle);
+        });
+        create('polygon', {
+            points: pointRing(c, c, 18, 7.2, 8),
+            fill: 'var(--ink)',
+            opacity: 0.92,
+            class: 'relic-pulse',
+        }, svg);
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const [x, y] = polar(c, c, 114, angle);
+            create('circle', { cx: x, cy: y, r: i % 2 === 0 ? 3 : 1.5, fill: 'var(--ink)', opacity: 0.78 }, svg);
+        }
+        addText(svg, 160, 22, 'fourfold bloom around a seal', true, 8, 'middle');
+        addText(svg, 160, 304, 'crescent / diamond / star / return', false, 8, 'middle');
+        drawLater(svg);
+    }
+    function renderMemoryField(svg, seed) {
+        clear(svg);
+        const rng = mulberry32(seed);
+        const field = create('g', {}, svg);
+        for (let i = 0; i < 11; i++) {
+            const x = 28 + i * 32;
+            const sway = (i % 2 === 0 ? -1 : 1) * (1.8 + i * 0.14);
+            const line = create('line', {
+                x1: x,
+                y1: 24,
+                x2: x,
+                y2: 210,
+                stroke: 'var(--ink)',
+                'stroke-width': i % 3 === 0 ? 0.65 : 0.35,
+                opacity: 0.75,
+                class: `relic-sway relic-delay-${(i % 3) + 1}`,
+            }, field);
+            line.style.transformOrigin = `${x}px 24px`;
+            line.style.setProperty('--relic-sway-angle', `${sway}deg`);
+            drawClass(line);
+            for (let j = 0; j < 4; j++) {
+                const y = 56 + j * 40 + (rng() - 0.5) * 12;
+                create('circle', {
+                    cx: x,
+                    cy: y.toFixed(1),
+                    r: j === 2 && i % 4 === 0 ? 5 : 2.4 + rng() * 1.4,
+                    fill: j === 2 && i % 4 === 0 ? 'none' : 'var(--ink)',
+                    stroke: 'var(--ink)',
+                    'stroke-width': j === 2 && i % 4 === 0 ? 0.48 : 0.18,
+                    opacity: 0.84,
+                }, field);
+            }
+        }
+        for (let i = 0; i < 5; i++) {
+            const path = create('path', {
+                d: sampledPath((t) => {
+                    const x = 28 + t * 324;
+                    const y = 118 + Math.sin((t * Math.PI * 2 * (i + 1)) + i * 0.8) * (12 + i * 4);
+                    return [x, y];
+                }, 120),
+                fill: 'none',
+                stroke: 'var(--ink)',
+                'stroke-width': 0.18,
+                opacity: 0.15 + i * 0.04,
+            }, svg);
+            drawClass(path);
+        }
+        addText(svg, 24, 22, 'a hanging notation of thought', true, 8, 'start');
+        addText(svg, 356, 228, 'numbers remembered as weight and interval', false, 8, 'end');
+        drawLater(svg);
+    }
+    const registry = {
+        astrolabe: renderAstrolabe,
+        vesica: renderVesica,
+        roseWindow: renderRoseWindow,
+        labyrinth: renderLabyrinth,
+        eclipseEngine: renderEclipseEngine,
+        aetherKnot: renderAetherKnot,
+        chaplet: renderChaplet,
+        waterClock: renderWaterClock,
+        pilgrimStar: renderPilgrimStar,
+        lanternWindow: renderLanternWindow,
+        sigilBloom: renderSigilBloom,
+        memoryField: renderMemoryField,
+    };
+    function miniMedallion(kind, svg, seed) {
+        clear(svg);
+        svg.setAttribute('viewBox', '0 0 96 96');
+        const c = 48;
+        const outer = create('circle', {
+            cx: c,
+            cy: c,
+            r: 38,
+            fill: 'none',
+            stroke: 'var(--ink)',
+            'stroke-width': 0.5,
+            opacity: 0.72,
+        }, svg);
+        drawClass(outer);
+        if (kind === 'vesica') {
+            create('circle', { cx: 40, cy: 48, r: 22, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.5, opacity: 0.8 }, svg);
+            create('circle', { cx: 56, cy: 48, r: 22, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.5, opacity: 0.8 }, svg);
+            create('polygon', { points: pointRing(c, c, 8, 3, 8), fill: 'var(--ink)', opacity: 0.88 }, svg);
+        }
+        else if (kind === 'labyrinth') {
+            [[18, 18, 60, 60], [26, 26, 44, 44], [34, 34, 28, 28]].forEach(([x, y, w, h]) => {
+                const rect = create('rect', { x, y, width: w, height: h, fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.35, opacity: 0.72 }, svg);
+                drawClass(rect);
+            });
+            create('polygon', { points: pointRing(c, c, 7, 3, 4, Math.PI / 4), fill: 'var(--ink)', opacity: 0.9 }, svg);
+        }
+        else if (kind === 'chaplet') {
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2 - Math.PI / 2;
+                const [x, y] = polar(c, c, 28, angle);
+                create('circle', { cx: x, cy: y, r: i % 3 === 0 ? 3.2 : 1.8, fill: 'var(--ink)', opacity: 0.82 }, svg);
+            }
+            create('line', { x1: c, y1: 64, x2: c, y2: 84, stroke: 'var(--ink)', 'stroke-width': 0.4 }, svg);
+            create('circle', { cx: c, cy: 88, r: 3.2, fill: 'var(--ink)', opacity: 0.9 }, svg);
+        }
+        else if (kind === 'memoryField') {
+            for (let i = 0; i < 5; i++) {
+                const x = 24 + i * 12;
+                create('line', { x1: x, y1: 22, x2: x, y2: 76, stroke: 'var(--ink)', 'stroke-width': 0.35, opacity: 0.8 }, svg);
+                create('circle', { cx: x, cy: 34 + (i % 3) * 10, r: 2.1, fill: 'var(--ink)', opacity: 0.85 }, svg);
+                create('circle', { cx: x, cy: 54 + ((i + 1) % 3) * 6, r: i % 2 ? 1.6 : 2.6, fill: 'var(--ink)', opacity: 0.8 }, svg);
+            }
+        }
+        else if (kind === 'waterClock') {
+            const path = create('path', { d: 'M28,14 C28,40 40,48 46,58 C52,68 52,74 46,86 M68,14 C68,40 56,48 50,58 C44,68 44,74 50,86', fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.55, opacity: 0.82 }, svg);
+            drawClass(path);
+            create('circle', { cx: 48, cy: 48, r: 2.2, fill: 'var(--ink)', opacity: 0.9 }, svg);
+        }
+        else {
+            create('polygon', { points: pointRing(c, c, 24, 10, 8), fill: 'none', stroke: 'var(--ink)', 'stroke-width': 0.55, opacity: 0.86 }, svg);
+            create('polygon', { points: pointRing(c, c, 10, 4.5, 8), fill: 'var(--ink)', opacity: 0.9 }, svg);
+            [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].forEach((angle) => {
+                const [x, y] = polar(c, c, 30, angle);
+                create('circle', { cx: x, cy: y, r: 2, fill: 'var(--ink)', opacity: 0.75 }, svg);
+            });
+        }
+        drawLater(svg);
+    }
+    function render(kind, svg, options = {}) {
+        var _a;
+        const seed = (_a = options.seed) !== null && _a !== void 0 ? _a : 1;
+        registry[kind](svg, seed);
+        svg.classList.add('relic-art-svg');
+    }
+    MovementLibrary.render = render;
+    function renderMini(kind, host, seed = 1) {
+        const svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('class', 'relic-mini-svg');
+        host.appendChild(svg);
+        miniMedallion(kind, svg, seed);
+        return svg;
+    }
+    MovementLibrary.renderMini = renderMini;
+    function getDefaults(kind) {
+        return defaults[kind];
+    }
+    MovementLibrary.getDefaults = getDefaults;
+    function mountGallery(root, plates) {
+        root.innerHTML = '';
+        plates.forEach((plate, index) => {
+            var _a, _b, _c, _d, _e;
+            const def = defaults[plate.kind];
+            const container = document.createElement('section');
+            container.className = 'relic-gallery-item';
+            container.innerHTML = `
+        <div class="plate rv artefact-plate" data-artefact-kind="${plate.kind}" data-plate-index="${index}">
+          <div class="code-bg"></div>
+          <svg class="art" aria-hidden="true"></svg>
+        </div>
+        <div class="plate-num rv"><span class="rubric">${plate.numeral}</span></div>
+        <div class="plate-title rv">${plate.title}</div>
+        <div class="divider rv">${(_a = plate.divider) !== null && _a !== void 0 ? _a : '◆ · ◇ · ◆'}</div>
+      `;
+            const code = container.querySelector('.code-bg');
+            code.textContent = plate.code.trim();
+            const svg = container.querySelector('svg');
+            svg.setAttribute('viewBox', (_b = plate.viewBox) !== null && _b !== void 0 ? _b : def.viewBox);
+            svg.setAttribute('width', String((_c = plate.width) !== null && _c !== void 0 ? _c : def.width));
+            svg.setAttribute('height', String((_d = plate.height) !== null && _d !== void 0 ? _d : def.height));
+            render(plate.kind, svg, { seed: (_e = plate.seed) !== null && _e !== void 0 ? _e : index + 1 });
+            root.appendChild(container);
+        });
+    }
+    MovementLibrary.mountGallery = mountGallery;
+})(MovementLibrary || (MovementLibrary = {}));
+window.MovementLibrary = MovementLibrary;
+</script>
+<script>
+// Render all 12 Volume III artefacts using the movement library
+(function(){
+  const kinds = [
+    ['astrolabe',25],['vesica',26],['roseWindow',27],['labyrinth',28],
+    ['eclipseEngine',29],['aetherKnot',30],['chaplet',31],['waterClock',32],
+    ['pilgrimStar',33],['lanternWindow',34],['sigilBloom',35],['memoryField',36]
+  ];
+  kinds.forEach(([kind, seed]) => {
+    const svg = document.getElementById('vol3-' + kind);
+    if (svg && typeof MovementLibrary !== 'undefined') {
+      try { MovementLibrary.render(kind, svg, { seed }); } catch(e) { console.warn('Vol3 render failed:', kind, e); }
+    }
+  });
+  // Start the animation loop
+  if (typeof MovementLibrary !== 'undefined' && MovementLibrary.loop) {
+    MovementLibrary.loop();
+  }
+})();
+</script>
+<script>
+// ═══ PLATE RENDERERS — all 41 artefacts ═══
+(function(){
+const NS='http://www.w3.org/2000/svg';
+function MK(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function E(t,a,p){const e=document.createElementNS(NS,t);for(const[k,v]of Object.entries(a))e.setAttribute(k,String(v));if(p)p.appendChild(e);return e}
+function polar(cx,cy,r,a){return[cx+r*Math.cos(a),cy+r*Math.sin(a)]}
+function sampledPath(fn,n){let d='';for(let i=0;i<=n;i++){const[x,y]=fn(i/n);d+=(i===0?'M':'L')+x.toFixed(1)+','+y.toFixed(1)}return d}
+
+// ═══ CODE GHOST ═══
+const gt=document.getElementById('ghostText');
+if(gt){const c=`// mulberry32 — deterministic PRNG
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function() {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rng = mulberry32(42);
+function jitter(v, a) { return v + (rng() - 0.5) * a; }
+
+// the orrery — plate I
+el('g', { style: 'animation: spin 55s linear infinite' });
+el('circle', { cx:c, cy:c, r: jitter(132, 2) });
+
+// Lorenz attractor — σ=10, ρ=28, β=8/3
+let x=1, y=1, z=1;
+for (let i = 0; i < 10000; i++) {
+  const dx = 10*(y-x), dy = x*(28-z)-y, dz = x*y-(8/3)*z;
+  x += dx*.005; y += dy*.005; z += dz*.005;
+}
+
+// harmonograph — f₁=3.001 f₂=2 d₁=.003 d₂=.004
+for (let i = 0; i < 3000; i++) {
+  const t = i/3000 * 80 * Math.PI;
+  const px = Math.sin(3.001*t) * Math.exp(-0.003*t);
+  const py = Math.sin(2*t) * Math.exp(-0.004*t);
+}
+
+// the manuscript computes.
+`;gt.textContent=c+'\n'+c}
+
+// ═══ HEADPIECE ═══
+function buildHP(id){
+  const host=document.getElementById(id);if(!host)return;
+  const svg=E('svg',{viewBox:'0 0 240 14',width:'240',height:'14'},host);
+  [{d:'M0,7 L90,7',sw:.3,op:.18},{d:'M150,7 L240,7',sw:.3,op:.18},
+   {d:'M92,2 L98,7 L92,12',sw:.4,op:.3},{d:'M148,2 L142,7 L148,12',sw:.4,op:.3},
+   {d:'M108,0 L114,7 L108,14 L102,7 Z',sw:.5,op:.4,s:'var(--rubric)'},
+   {d:'M132,0 L138,7 L132,14 L126,7 Z',sw:.5,op:.4,s:'var(--rubric)'},
+   {d:'M120,0 L126,7 L120,14 L114,7 Z',sw:.6,op:.5,s:'var(--rubric)'},
+   {d:'M120,3 L123,7 L120,11 L117,7 Z',sw:.35,op:.25,f:'var(--rubric)'}
+  ].forEach((p,i)=>{
+    const el=E('path',{d:p.d,fill:p.f||'none',stroke:p.s||'var(--ink)','stroke-width':p.sw,opacity:p.op},svg);
+    if(!p.f){const l=el.getTotalLength();el.style.strokeDasharray=l;el.style.strokeDashoffset=l;el.style.setProperty('--len',l);el.style.animation=`hpDraw 1.5s var(--ease) ${i*120}ms forwards, hpRedraw 30s var(--ease) ${3+i*.2}s infinite`}
+  });
+}
+buildHP('hp0');buildHP('hp1');
+
+// ═══ HELPER — draw-later system ═══
+function drawLater(svg){
+  svg.querySelectorAll('.drw').forEach(p=>{try{const l=p.getTotalLength();p.style.strokeDasharray=l;p.style.strokeDashoffset=l;p.style.transition='stroke-dashoffset 2.2s cubic-bezier(.25,.1,.25,1)'}catch(e){}});
+  const obs=new IntersectionObserver(ent=>{ent.forEach(e=>{if(e.isIntersecting){svg.querySelectorAll('.drw').forEach(p=>p.style.strokeDashoffset='0');obs.disconnect()}})},{threshold:.1});
+  obs.observe(svg);
+}
+
+// ═══ TREATISE PLATES ═══
+
+// T-I: Orbital Field
+(function(){
+  const svg=document.getElementById('treatise-orbital');if(!svg)return;
+  const c=150,cy=110,R=MK(42);const J=(v,a)=>v+(R()-0.5)*a;
+  const g1=E('g',{style:`animation:spin 55s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  E('circle',{cx:c,cy,r:J(95,2),fill:'none',stroke:'var(--ink)','stroke-width':.4,opacity:.6,class:'drw'},g1);
+  E('circle',{cx:c,cy,r:J(90,1),fill:'none',stroke:'var(--ink)','stroke-width':.18,opacity:.25,'stroke-dasharray':'2,6'},g1);
+  const g2=E('g',{style:`animation:spinR 38s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  E('circle',{cx:c,cy,r:J(68,2),fill:'none',stroke:'var(--ink)','stroke-width':.55,opacity:.5,class:'drw'},g2);
+  E('line',{x1:c-68,y1:cy,x2:c+68,y2:cy,stroke:'var(--ink)','stroke-width':.15,opacity:.15},g2);
+  E('line',{x1:c,y1:cy-68,x2:c,y2:cy+68,stroke:'var(--ink)','stroke-width':.15,opacity:.15},g2);
+  E('circle',{cx:c,cy,r:J(40,2),fill:'none',stroke:'var(--ink)','stroke-width':.35,opacity:.4},svg);
+  const gf=E('g',{style:'animation:float 9s ease-in-out infinite'},svg);
+  [[c-30,cy-20,4],[c+25,cy+15,3],[c-10,cy+30,5],[c+35,cy-10,2.5]].forEach(([x,y,r])=>E('circle',{cx:J(x,3),cy:J(y,3),r:J(r,.4),fill:'var(--ink)',opacity:.6},gf));
+  E('polygon',{points:`${c},${cy-7} ${c+1.5},${cy-1} ${c+7},${cy} ${c+1.5},${cy+1} ${c},${cy+7} ${c-1.5},${cy+1} ${c-7},${cy} ${c-1.5},${cy-1}`,fill:'var(--ink)',opacity:.7},svg);
+  E('circle',{cx:c,cy,r:18,fill:'none',stroke:'var(--ink)','stroke-width':.25,opacity:.18,style:'animation:pulse 5s ease-in-out infinite'},svg);
+  drawLater(svg);
+})();
+
+// T-II: Spiral
+(function(){
+  const svg=document.getElementById('treatise-spiral');if(!svg)return;
+  const cx=150,cy=110;
+  const g=E('g',{style:`animation:breathe 12s ease-in-out infinite;transform-origin:${cx}px ${cy}px`},svg);
+  const arcs=[{r:100,x1:cx-30,y1:cy+20,x2:cx-80,y2:cy-80},{r:62,x1:cx-80,y1:cy-80,x2:cx+60,y2:cy-20},{r:38,x1:cx+60,y1:cy-20,x2:cx+20,y2:cy+20},{r:24,x1:cx+20,y1:cy+20,x2:cx-5,y2:cy-5}];
+  arcs.forEach((a,i)=>{E('path',{d:`M${a.x1},${a.y1} A${a.r},${a.r} 0 0 0 ${a.x2},${a.y2}`,fill:'none',stroke:'var(--ink)','stroke-width':.6-.1*i,opacity:.5+i*.08,class:'drw'},g)});
+  E('circle',{cx:cx-10,cy:cy-5,r:3,fill:'var(--ink)',opacity:.5},g);
+  E('text',{x:cx-10,y:cy+8,'font-family':"'EB Garamond',Georgia,serif",'font-size':'9',fill:'var(--rubric)',opacity:.4,'font-style':'italic','text-anchor':'middle'},g).textContent='φ';
+  drawLater(svg);
+})();
+
+// T-III: Sierpiński Lattice
+(function(){
+  const svg=document.getElementById('treatise-lattice');if(!svg)return;
+  const R=MK(33);
+  function sierp(ax,ay,bx,by,cx,cy,d,maxD){
+    if(d>=maxD)return;
+    const del=200+d*300;
+    E('polygon',{points:`${ax},${ay} ${bx},${by} ${cx},${cy}`,fill:'none',stroke:'var(--ink)','stroke-width':.35,opacity:.15+d*.12,class:'drw',style:`transition-delay:${del}ms`},svg);
+    const mx1=(ax+bx)/2,my1=(ay+by)/2,mx2=(bx+cx)/2,my2=(by+cy)/2,mx3=(ax+cx)/2,my3=(ay+cy)/2;
+    sierp(ax,ay,mx1,my1,mx3,my3,d+1,maxD);
+    sierp(mx1,my1,bx,by,mx2,my2,d+1,maxD);
+    sierp(mx3,my3,mx2,my2,cx,cy,d+1,maxD);
+  }
+  sierp(150,15,30,195,270,195,0,4);
+  drawLater(svg);
+})();
+
+// T-IV: Pendulum Choir
+(function(){
+  const svg=document.getElementById('treatise-pendulum');if(!svg)return;
+  for(let i=0;i<12;i++){
+    const x=30+i*22,len=40+i*10;
+    const per=4+i*.6;
+    const g=E('g',{style:`transform-origin:${x}px 10px;animation:pendulum ${per}s ease-in-out infinite;--a:${-15+i}deg;--b:${15-i}deg`},svg);
+    E('line',{x1:x,y1:10,x2:x,y2:10+len,stroke:'var(--ink)','stroke-width':.35,opacity:.4},g);
+    E('circle',{cx:x,cy:10+len,r:3+i*.3,fill:'var(--ink)',opacity:.5},g);
+  }
+  E('line',{x1:20,y1:10,x2:280,y2:10,stroke:'var(--ink)','stroke-width':.5,opacity:.3},svg);
+})();
+
+// T-V: Seed (phyllotaxis)
+(function(){
+  const svg=document.getElementById('treatise-seed');if(!svg)return;
+  const cx=150,cy=110,ga=137.508*Math.PI/180;
+  for(let i=0;i<120;i++){
+    const r=4*Math.sqrt(i),a=i*ga;
+    const x=cx+r*Math.cos(a),y=cy+r*Math.sin(a);
+    E('circle',{cx:x.toFixed(1),cy:y.toFixed(1),r:1.2+i*.01,fill:'var(--ink)',opacity:.1+Math.min(i/120,.5)},svg);
+  }
+  E('circle',{cx,cy,r:2.5,fill:'var(--rubric)',opacity:.4},svg);
+})();
+
+// ═══ VOL I PLATES ═══
+function v1(id,seed,fn){const svg=document.getElementById(id);if(!svg)return;const R=MK(seed);const J=(v,a)=>v+(R()-0.5)*a;fn(svg,R,J,150,110)}
+
+// I. Orrery
+v1('orrery',42,(svg,R,J,c,cy)=>{
+  const g1=E('g',{style:`animation:spin 55s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  E('circle',{cx:c,cy,r:J(95,2),fill:'none',stroke:'var(--ink)','stroke-width':.4,opacity:.6},g1);
+  const g2=E('g',{style:`animation:spinR 40s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  E('circle',{cx:c,cy,r:J(68,2),fill:'none',stroke:'var(--ink)','stroke-width':.55,opacity:.5},g2);
+  E('line',{x1:c-68,y1:cy,x2:c+68,y2:cy,stroke:'var(--ink)','stroke-width':.15,opacity:.15},g2);
+  E('line',{x1:c,y1:cy-68,x2:c,y2:cy+68,stroke:'var(--ink)','stroke-width':.15,opacity:.15},g2);
+  [[c,cy-68],[c+68,cy],[c,cy+68],[c-68,cy]].forEach(([x,y])=>E('polygon',{points:`${x},${y-4} ${x+2.5},${y} ${x},${y+4} ${x-2.5},${y}`,fill:'var(--ink)',opacity:.4},g2));
+  E('circle',{cx:c,cy,r:J(42,2),fill:'none',stroke:'var(--ink)','stroke-width':.35,opacity:.35},svg);
+  const gf=E('g',{style:'animation:float 9s ease-in-out infinite'},svg);
+  [[c-28,cy-18,4.5],[c+22,cy+12,3],[c-8,cy+28,4],[c+32,cy-8,2.2]].forEach(([x,y,r])=>E('circle',{cx:J(x,2),cy:J(y,2),r:J(r,.4),fill:'var(--ink)',opacity:.55},gf));
+  E('polygon',{points:`${c},${cy-7} ${c+1.5},${cy-1} ${c+7},${cy} ${c+1.5},${cy+1} ${c},${cy+7} ${c-1.5},${cy+1} ${c-7},${cy} ${c-1.5},${cy-1}`,fill:'var(--ink)',opacity:.7},svg);
+  E('circle',{cx:c,cy,r:18,fill:'none',stroke:'var(--ink)','stroke-width':.25,opacity:.15,style:'animation:pulse 5s ease-in-out infinite'},svg);
+});
+
+// II. Loom (Lissajous)
+v1('loom',43,(svg,R,J,c,cy)=>{
+  const d=sampledPath(t=>{const a=t*Math.PI*2*6;return[c+90*Math.sin(3*a),cy+80*Math.sin(2*a)]},300);
+  E('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':.5,opacity:.35},svg);
+  const dot=E('circle',{cx:c,cy,r:2.5,fill:'var(--rubric)',opacity:.6},svg);
+  let time=0;(function anim(){time+=.008;const a=time*Math.PI*2;dot.setAttribute('cx',(c+90*Math.sin(3*a)).toFixed(1));dot.setAttribute('cy',(cy+80*Math.sin(2*a)).toFixed(1));requestAnimationFrame(anim)})();
+});
+
+// III. Tide (ripples)
+v1('tide',44,(svg,R,J,c,cy)=>{
+  [c-50,c+50].forEach(sx=>{
+    for(let i=0;i<5;i++){
+      E('circle',{cx:sx,cy,r:0,fill:'none',stroke:'var(--ink)','stroke-width':.4,opacity:0,style:`animation:rippleOut ${3+i*.5}s ease-out ${i*.6}s infinite`},svg);
+    }
+    E('circle',{cx:sx,cy,r:2,fill:'var(--ink)',opacity:.5},svg);
+  });
+});
+
+// IV. Choir (pendulums)
+v1('choir',45,(svg,R,J,c,cy)=>{
+  E('line',{x1:20,y1:15,x2:280,y2:15,stroke:'var(--ink)','stroke-width':.5,opacity:.3},svg);
+  for(let i=0;i<12;i++){
+    const x=35+i*20,len=30+i*8,per=3.5+i*.55;
+    const g=E('g',{style:`transform-origin:${x}px 15px;animation:pendulum ${per.toFixed(1)}s ease-in-out infinite;--a:${-12+i*.8}deg;--b:${12-i*.8}deg`},svg);
+    E('line',{x1:x,y1:15,x2:x,y2:15+len,stroke:'var(--ink)','stroke-width':.3,opacity:.35},g);
+    E('circle',{cx:x,cy:15+len,r:2.5+i*.2,fill:'var(--ink)',opacity:.45},g);
+  }
+});
+
+// V. Seed (phyllotaxis)
+v1('seed',46,(svg,R,J,c,cy)=>{
+  const ga=137.508*Math.PI/180;
+  for(let i=0;i<150;i++){const r=3.5*Math.sqrt(i),a=i*ga;E('circle',{cx:(c+r*Math.cos(a)).toFixed(1),cy:(cy+r*Math.sin(a)).toFixed(1),r:1+i*.008,fill:'var(--ink)',opacity:.08+Math.min(i/150,.45)},svg)}
+  E('circle',{cx:c,cy,r:2,fill:'var(--rubric)',opacity:.4},svg);
+});
+
+// VI. Gasket
+v1('gasket',47,(svg,R,J)=>{
+  function s(ax,ay,bx,by,cx,cy,d){
+    if(d>=4)return;
+    E('polygon',{points:`${ax},${ay} ${bx},${by} ${cx},${cy}`,fill:'none',stroke:'var(--ink)','stroke-width':.3,opacity:.12+d*.1},svg);
+    const m1=[(ax+bx)/2,(ay+by)/2],m2=[(bx+cx)/2,(by+cy)/2],m3=[(ax+cx)/2,(ay+cy)/2];
+    s(ax,ay,m1[0],m1[1],m3[0],m3[1],d+1);s(m1[0],m1[1],bx,by,m2[0],m2[1],d+1);s(m3[0],m3[1],m2[0],m2[1],cx,cy,d+1);
+  }
+  s(150,15,30,195,270,195,0);
+});
+
+// VII. Compass Rose
+v1('compass',48,(svg,R,J,c,cy)=>{
+  const g=E('g',{style:`animation:spin 120s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  for(let i=0;i<16;i++){const a=i/16*Math.PI*2-Math.PI/2;const[x,y]=polar(c,cy,85,a);E('line',{x1:c,y1:cy,x2:x,y2:y,stroke:'var(--ink)','stroke-width':i%4===0?.5:i%2===0?.3:.15,opacity:i%4===0?.5:.25},g)}
+  E('circle',{cx:c,cy,r:85,fill:'none',stroke:'var(--ink)','stroke-width':.3,opacity:.25},g);
+  const g2=E('g',{style:`animation:spinR 80s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  for(let i=0;i<8;i++){const a=i/8*Math.PI*2;const[x,y]=polar(c,cy,35,a);E('polygon',{points:`${c},${cy} ${x},${y}`,fill:'none',stroke:'var(--ink)','stroke-width':.4,opacity:.3},g2)}
+  E('circle',{cx:c,cy,r:5,fill:'var(--ink)',opacity:.4},svg);
+});
+
+// VIII. Hourglass
+v1('hourglass',49,(svg,R,J)=>{
+  E('path',{d:'M100,15 L200,15 L160,100 L200,195 L100,195 L140,100 Z',fill:'none',stroke:'var(--ink)','stroke-width':.6,opacity:.4},svg);
+  for(let i=0;i<20;i++){E('circle',{cx:140+R()*20,cy:160+R()*30,r:.8+R(),fill:'var(--ink)',opacity:.2+R()*.2},svg)}
+  E('line',{x1:100,y1:15,x2:200,y2:15,stroke:'var(--ink)','stroke-width':.8,opacity:.5},svg);
+  E('line',{x1:100,y1:195,x2:200,y2:195,stroke:'var(--ink)','stroke-width':.8,opacity:.5},svg);
+});
+
+// IX. Helix
+v1('helix',50,(svg,R,J,c,cy)=>{
+  const d1=sampledPath(t=>{const x=30+t*240;return[x,cy+40*Math.sin(t*Math.PI*4)]},200);
+  const d2=sampledPath(t=>{const x=30+t*240;return[x,cy-40*Math.sin(t*Math.PI*4)]},200);
+  E('path',{d:d1,fill:'none',stroke:'var(--ink)','stroke-width':.5,opacity:.4},svg);
+  E('path',{d:d2,fill:'none',stroke:'var(--ink)','stroke-width':.5,opacity:.4},svg);
+  for(let i=0;i<8;i++){const x=50+i*28,y1=cy+40*Math.sin((x-30)/240*Math.PI*4),y2=cy-40*Math.sin((x-30)/240*Math.PI*4);E('circle',{cx:x,cy:(y1+y2)/2,r:2,fill:'var(--rubric)',opacity:.35},svg)}
+});
+
+// X. Cantor Dust
+v1('cantor',51,(svg,R,J)=>{
+  function cantor(x,w,y,d){
+    if(d>=6||w<1)return;
+    E('line',{x1:x,y1:y,x2:x+w,y2:y,stroke:'var(--ink)','stroke-width':1.5-d*.15,opacity:.2+d*.06},svg);
+    cantor(x,w/3,y+22,d+1);cantor(x+2*w/3,w/3,y+22,d+1);
+  }
+  cantor(30,240,20,0);
+});
+
+// XI. Reflection
+v1('reflection',52,(svg,R,J,c,cy)=>{
+  const g=E('g',{style:`animation:breathe 10s ease-in-out infinite;transform-origin:${c}px ${cy}px`},svg);
+  E('line',{x1:c,y1:20,x2:c,y2:200,stroke:'var(--ink)','stroke-width':.3,opacity:.15},svg);
+  for(let i=0;i<6;i++){
+    const y=35+i*26,r=15+R()*20;
+    E('circle',{cx:c-25,cy:y,r,fill:'none',stroke:'var(--ink)','stroke-width':.35,opacity:.25},g);
+    E('circle',{cx:c+25,cy:y,r,fill:'none',stroke:'var(--ink)','stroke-width':.35,opacity:.25},g);
+    E('line',{x1:c-25+r,y1:y,x2:c+25-r,y2:y,stroke:'var(--ink)','stroke-width':.2,opacity:.12},g);
+  }
+});
+
+// XII. Attractor (Lorenz)
+v1('attractor',53,(svg,R,J)=>{
+  let x=1,y=1,z=1;const pts=[];
+  for(let i=0;i<8000;i++){const dx=10*(y-x),dy=x*(28-z)-y,dz=x*y-(8/3)*z;x+=dx*.005;y+=dy*.005;z+=dz*.005;pts.push([x,z])}
+  let d='M';pts.forEach(([px,pz],i)=>{d+=(i?'L':'')+(150+px*3.2).toFixed(1)+','+(200-pz*2.8).toFixed(1)});
+  E('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':.3,opacity:.35},svg);
+});
+
+// ═══ VOL II PLATES ═══
+function v2(id,seed,fn){const svg=document.getElementById(id);if(!svg)return;const R=MK(seed);const J=(v,a)=>v+(R()-0.5)*a;fn(svg,R,J,150,110)}
+
+// XIII. Tessellation (quasi-Penrose)
+v2('tessellation',137,(svg,R,J,c,cy)=>{
+  for(let i=0;i<5;i++){const a=i/5*Math.PI;for(let j=-8;j<9;j++){const x1=c+j*16*Math.cos(a)-100*Math.sin(a),y1=cy+j*16*Math.sin(a)+100*Math.cos(a);const x2=c+j*16*Math.cos(a)+100*Math.sin(a),y2=cy+j*16*Math.sin(a)-100*Math.cos(a);E('line',{x1:x1.toFixed(0),y1:y1.toFixed(0),x2:x2.toFixed(0),y2:y2.toFixed(0),stroke:'var(--ink)','stroke-width':.2,opacity:.1},svg)}}
+  for(let i=0;i<5;i++){const a=i/5*Math.PI*2-Math.PI/2;const[x,y]=polar(c,cy,20,a);E('polygon',{points:`${c},${cy} ${x},${y}`,fill:'none',stroke:'var(--rubric)','stroke-width':.4,opacity:.25},svg)}
+});
+
+// XIV. Meridian
+v2('meridian',138,(svg,R,J,c,cy)=>{
+  const g=E('g',{style:`animation:spin 90s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  for(let i=0;i<12;i++){const lon=i/12*Math.PI*2;const d=sampledPath(t=>{const lat=(t-.5)*Math.PI;const x=c+80*Math.cos(lat)*Math.sin(lon);const y=cy-80*Math.sin(lat);return[x,y]},60);E('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':.25,opacity:.2},g)}
+  E('circle',{cx:c,cy,r:80,fill:'none',stroke:'var(--ink)','stroke-width':.4,opacity:.3},svg);
+  E('line',{x1:c-82,y1:cy,x2:c+82,y2:cy,stroke:'var(--rubric)','stroke-width':.3,opacity:.2},svg);
+});
+
+// XV. Cycloid
+v2('cycloid',139,(svg,R,J)=>{
+  const r=25,y0=60;
+  const d=sampledPath(t=>{const a=t*Math.PI*6;return[20+t*260,y0+r-r*Math.cos(a)]},300);
+  E('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':.5,opacity:.4},svg);
+  const wheel=E('circle',{cx:20,cy:y0,r,fill:'none',stroke:'var(--ink)','stroke-width':.3,opacity:.2},svg);
+  const dot=E('circle',{cx:20,cy:y0+r,r:2.5,fill:'var(--rubric)',opacity:.5},svg);
+  let t=0;(function step(){t+=.002;if(t>1)t=0;const cx=20+t*260,a=t*Math.PI*6;wheel.setAttribute('cx',cx.toFixed(1));dot.setAttribute('cx',(cx-r*Math.sin(a)).toFixed(1));dot.setAttribute('cy',(y0+r*Math.cos(a)).toFixed(1));requestAnimationFrame(step)})();
+});
+
+// XVI. Voronoi
+v2('voronoi',140,(svg,R,J)=>{
+  const seeds=[];for(let i=0;i<16;i++)seeds.push([30+R()*240,20+R()*180]);
+  seeds.forEach(([x,y])=>E('circle',{cx:x.toFixed(1),cy:y.toFixed(1),r:2,fill:'var(--ink)',opacity:.4},svg));
+  for(let i=0;i<seeds.length;i++)for(let j=i+1;j<seeds.length;j++){
+    const[ax,ay]=seeds[i],[bx,by]=seeds[j];
+    const dist=Math.sqrt((ax-bx)**2+(ay-by)**2);
+    if(dist<80){const mx=(ax+bx)/2,my=(ay+by)/2;const nx=-(by-ay)/dist*30,ny=(bx-ax)/dist*30;E('line',{x1:(mx-nx).toFixed(1),y1:(my-ny).toFixed(1),x2:(mx+nx).toFixed(1),y2:(my+ny).toFixed(1),stroke:'var(--ink)','stroke-width':.25,opacity:.12},svg)}
+  }
+});
+
+// XVII. Moiré
+v2('moire',141,(svg,R,J,c,cy)=>{
+  const g1=E('g',{style:`animation:spin 80s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  const g2=E('g',{style:`animation:spinR 95s linear infinite;transform-origin:${c}px ${cy}px`},svg);
+  for(let i=-10;i<=10;i++){
+    E('line',{x1:c+i*8,y1:cy-100,x2:c+i*8,y2:cy+100,stroke:'var(--ink)','stroke-width':.3,opacity:.15},g1);
+    E('line',{x1:c+i*8,y1:cy-100,x2:c+i*8,y2:cy+100,stroke:'var(--ink)','stroke-width':.3,opacity:.15},g2);
+  }
+});
+
+// XVIII. Involute
+v2('involute',142,(svg,R,J,c,cy)=>{
+  E('circle',{cx:c,cy,r:25,fill:'none',stroke:'var(--ink)','stroke-width':.4,opacity:.3},svg);
+  const d=sampledPath(t=>{const a=t*Math.PI*4;const r=25;return[c+r*(Math.cos(a)+a*Math.sin(a)),cy+r*(Math.sin(a)-a*Math.cos(a))]},200);
+  E('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':.4,opacity:.35},svg);
+  for(let i=0;i<6;i++){const a=i/6*Math.PI*4;const px=c+25*Math.cos(a),py=cy+25*Math.sin(a);const qx=c+25*(Math.cos(a)+a*Math.sin(a)),qy=cy+25*(Math.sin(a)-a*Math.cos(a));E('line',{x1:px.toFixed(1),y1:py.toFixed(1),x2:qx.toFixed(1),y2:qy.toFixed(1),stroke:'var(--rubric)','stroke-width':.3,opacity:.2},svg)}
+});
+
+// XIX. Harmonograph
+v2('harmonograph',143,(svg,R,J,c,cy)=>{
+  const d=sampledPath(t=>{const a=t*80*Math.PI;return[c+80*Math.sin(3.001*a)*Math.exp(-.003*a),cy+70*Math.sin(2*a)*Math.exp(-.004*a)]},2000);
+  E('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':.3,opacity:.3},svg);
+});
+
+// XX. Epicycles
+v2('epicycles',144,(svg,R,J,c,cy)=>{
+  const circles=[[40,.5],[20,1.3],[12,2.1],[7,3.4],[4,5.5]];
+  let cx2=c,cy2=cy;
+  circles.forEach(([r,f],i)=>{E('circle',{cx:cx2,cy:cy2,r,fill:'none',stroke:'var(--ink)','stroke-width':.25,opacity:.15+i*.04},svg);cx2+=r;});
+  const d=sampledPath(t=>{let x=c,y=cy;circles.forEach(([r,f])=>{x+=r*Math.cos(t*f*Math.PI*2);y+=r*Math.sin(t*f*Math.PI*2)});return[x,y]},600);
+  E('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':.4,opacity:.35},svg);
+});
+
+// XXI. Catenary
+v2('catenary',145,(svg,R,J,c,cy)=>{
+  const a=35;
+  const d1=sampledPath(t=>{const x=(t-.5)*240;return[c+x,cy-50+a*Math.cosh(x/a)]},200);
+  E('path',{d:d1,fill:'none',stroke:'var(--ink)','stroke-width':.5,opacity:.4},svg);
+  const d2=sampledPath(t=>{const x=(t-.5)*240;return[c+x,cy-50+x*x/200+10]},200);
+  E('path',{d:d2,fill:'none',stroke:'var(--rubric)','stroke-width':.3,opacity:.15,'stroke-dasharray':'4,3'},svg);
+});
+
+// XXII. Diffusion (Brownian)
+v2('diffusion',146,(svg,R,J,c,cy)=>{
+  for(let w=0;w<6;w++){
+    let x=c,y=cy;let d='M'+x+','+y;
+    for(let i=0;i<80;i++){x+=R()*6-3;y+=R()*6-3;d+='L'+x.toFixed(1)+','+y.toFixed(1)}
+    E('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':.3,opacity:.2},svg);
+  }
+  E('circle',{cx:c,cy,r:40,fill:'none',stroke:'var(--rubric)','stroke-width':.3,opacity:.15,'stroke-dasharray':'3,3'},svg);
+});
+
+// XXIII. Penumbra
+v2('penumbra',147,(svg,R,J,c,cy)=>{
+  E('circle',{cx:c-30,cy,r:35,fill:'none',stroke:'var(--ink)','stroke-width':.5,opacity:.4},svg);
+  const moon=E('circle',{cx:c+30,cy,r:25,fill:'var(--paper)',stroke:'var(--ink)','stroke-width':.5,opacity:.7},svg);
+  E('circle',{cx:c-30,cy,r:20,fill:'none',stroke:'var(--ink)','stroke-width':.3,opacity:.2,style:'animation:pulse 4s ease-in-out infinite'},svg);
+  E('line',{x1:c-30,y1:cy-50,x2:c+80,y2:cy-20,stroke:'var(--ink)','stroke-width':.2,opacity:.1},svg);
+  E('line',{x1:c-30,y1:cy+50,x2:c+80,y2:cy+20,stroke:'var(--ink)','stroke-width':.2,opacity:.1},svg);
+});
+
+// XXIV. Wavefunction
+v2('wavefunction',148,(svg,R,J,c,cy)=>{
+  for(let n=1;n<=5;n++){
+    const d=sampledPath(t=>{const x=t*260+20;return[x,cy+(n===1?-20:10*(n-1))+25*Math.sin(n*t*Math.PI)*Math.sin(t*Math.PI)]},200);
+    E('path',{d,fill:'none',stroke:n===1?'var(--rubric)':'var(--ink)','stroke-width':n===1?.5:.3,opacity:n===1?.4:.15+n*.04},svg);
+  }
+});
+
+// ═══ THE SEAL ═══
+(function(){
+  const svg=document.getElementById('seal-svg');if(!svg)return;
+  function star(cx,cy,n,ro,ri){let p=[];for(let i=0;i<n*2;i++){const a=Math.PI*i/n-Math.PI/2,r=i%2===0?ro:ri;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1))}return p.join(' ')}
+  const outer=E('g',{style:'animation:spin 90s linear infinite;transform-origin:100px 100px'},svg);
+  E('circle',{cx:100,cy:100,r:92,fill:'none',stroke:'var(--ink)','stroke-width':.5,opacity:.3},outer);
+  E('circle',{cx:100,cy:100,r:86,fill:'none',stroke:'var(--ink)','stroke-width':.15,opacity:.1,'stroke-dasharray':'1.5,5'},outer);
+  [[100,6],[194,100],[100,194],[6,100]].forEach(([x,y])=>{const dx=x<100?1:x>100?-1:0,dy=y<100?1:y>100?-1:0;E('polygon',{points:`${x},${y} ${x+dy*1.5},${y+dx*3.5+dy*3.5} ${x-dy*1.5},${y-dx*3.5+dy*3.5}`,fill:'var(--rubric)',opacity:.35},outer)});
+  [[100,8,100,192],[8,100,192,100],[30,30,170,170],[170,30,30,170]].forEach(([x1,y1,x2,y2])=>E('line',{x1,y1,x2,y2,stroke:'var(--ink)','stroke-width':.1,opacity:.05},outer));
+  const inner=E('g',{style:'animation:sealBreathe 10s ease-in-out infinite;transform-origin:100px 100px'},svg);
+  E('polygon',{points:star(100,100,16,76,44),fill:'none',stroke:'var(--rubric)','stroke-width':.5,opacity:.4},inner);
+  E('polygon',{points:star(100,100,16,56,34),fill:'none',stroke:'var(--rubric)','stroke-width':.3,opacity:.22},inner);
+  E('polygon',{points:star(100,100,8,28,16),fill:'none',stroke:'var(--rubric)','stroke-width':.25,opacity:.18},inner);
+  E('circle',{cx:100,cy:100,r:8,fill:'var(--rubric)',opacity:.15},inner);
+  E('circle',{cx:100,cy:100,r:40,fill:'none',stroke:'var(--rubric)','stroke-width':.18,opacity:.12,style:'animation:pulse 6s ease-in-out infinite'},inner);
+  const orb=E('g',{style:'animation:spinR 55s linear infinite;transform-origin:100px 100px'},svg);
+  for(let i=0;i<8;i++){const a=Math.PI*2*i/8-Math.PI/2;E('circle',{cx:(100+88*Math.cos(a)).toFixed(1),cy:(100+88*Math.sin(a)).toFixed(1),r:i%2===0?1.5:1,fill:'var(--rubric)',opacity:i%2===0?.25:.15},orb)}
+})();
+
+// ═══ COLOPHON SEAL ═══
+(function(){
+  const svg=document.getElementById('colophon-seal');if(!svg)return;
+  function star(cx,cy,n,ro,ri){let p=[];for(let i=0;i<n*2;i++){const a=Math.PI*i/n-Math.PI/2,r=i%2===0?ro:ri;p.push((cx+r*Math.cos(a)).toFixed(1)+','+(cy+r*Math.sin(a)).toFixed(1))}return p.join(' ')}
+  const g=E('g',{style:'animation:spin 120s linear infinite;transform-origin:30px 30px',opacity:'.3'},svg);
+  E('circle',{cx:30,cy:30,r:26,fill:'none',stroke:'var(--ink)','stroke-width':.4},g);
+  const b=E('g',{style:'animation:sealBreathe 12s ease-in-out infinite;transform-origin:30px 30px',opacity:'.3'},svg);
+  E('polygon',{points:star(30,30,8,18,10),fill:'none',stroke:'var(--rubric)','stroke-width':.4},b);
+  E('circle',{cx:30,cy:30,r:4,fill:'var(--rubric)',opacity:.3},b);
+})();
+
+// ═══ SCROLL REVEAL ═══
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')})},{threshold:.1});
+document.querySelectorAll('.rv').forEach(el=>obs.observe(el));
+})();
+</script>
+</div></body></html>
