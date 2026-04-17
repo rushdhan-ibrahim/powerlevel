@@ -18,7 +18,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { format } from "date-fns";
 import { roman } from "@/lib/manuscript";
 import {
@@ -203,7 +203,11 @@ function Sheet({
   onClose: () => void;
   children: React.ReactNode;
 }) {
-  // lock body scroll while the sheet is open
+  const [dragDy, setDragDy] = useState(0);
+  const dragStartY = useRef<number | null>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll while the sheet is open.
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -211,16 +215,76 @@ function Sheet({
       document.body.style.overflow = prev;
     };
   }, []);
+
+  // Escape key dismisses (laptop + external keyboard affordance).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  // Drag-to-dismiss. Start only when the touch begins on the handle
+  // or the scroll container is already at the top — so dragging
+  // through sheet content still scrolls the content normally.
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    const sheetEl = sheetRef.current;
+    if (!sheetEl) return;
+    const nearTop = sheetEl.scrollTop <= 0;
+    const target = e.target as HTMLElement;
+    const onHandle = target.closest(".mobile-sheet-handle-zone") != null;
+    if (!onHandle && !nearTop) return;
+    dragStartY.current = e.clientY;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragStartY.current == null) return;
+    const dy = e.clientY - dragStartY.current;
+    if (dy < 0) return; // drag up — ignore
+    setDragDy(dy);
+  };
+  const onPointerEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (dragStartY.current == null) return;
+    const dy = e.clientY - dragStartY.current;
+    dragStartY.current = null;
+    const threshold = (sheetRef.current?.offsetHeight ?? 400) * 0.28;
+    if (dy > threshold) {
+      onClose();
+    } else {
+      setDragDy(0);
+    }
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch {}
+  };
+
   return (
     <>
-      <div className="mobile-sheet-backdrop" onClick={onClose} aria-hidden="true" />
       <div
+        className="mobile-sheet-backdrop"
+        role="button"
+        aria-label="close"
+        // Use pointer events for instant close — onClick on iOS
+        // sometimes gets eaten by intermediate tap layers.
+        onPointerUp={onClose}
+      />
+      <div
+        ref={sheetRef}
         className="mobile-sheet"
         role="dialog"
         aria-modal="true"
         aria-label={title}
+        style={{
+          transform: dragDy > 0 ? `translateY(${dragDy}px)` : undefined,
+          transition: dragStartY.current == null ? "transform .24s var(--ease)" : "none",
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerEnd}
+        onPointerCancel={onPointerEnd}
       >
-        <div className="mobile-sheet-handle" />
+        {/* widened hit zone around the handle so a thumb-drag from
+            anywhere near the top edge begins the dismiss gesture */}
+        <div className="mobile-sheet-handle-zone">
+          <div className="mobile-sheet-handle" />
+        </div>
         <div className="mobile-sheet-title">{title}</div>
         {subtitle && <div className="mobile-sheet-sub">{subtitle}</div>}
         {children}

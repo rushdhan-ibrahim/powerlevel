@@ -90,10 +90,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#ece6dc" },
-    { media: "(prefers-color-scheme: dark)",  color: "#15100a" },
-  ],
+  // A single theme-color baseline (daylight). The ThemeBootScript +
+  // ThemeToggle keep this meta tag in sync with the user's chosen
+  // theme at runtime — iOS won't pick the dark variant just because
+  // the OS is in dark mode, since our theme is user-opt-in.
+  themeColor: "#ece6dc",
   // viewport-fit=cover lets content extend into the notch / home
   // indicator areas; env(safe-area-inset-*) keeps the important bits
   // (tab bar, title bar) clear of the hardware features.

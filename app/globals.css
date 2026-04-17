@@ -123,10 +123,11 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: sm
        + Dynamic-Island safe area shows the manuscript page, not a
        white default. Matters when viewport-fit=cover + status-bar
        style is black-translucent. */
-    background: var(--paper);
+    background: var(--paper) !important;
   }
   body {
-    background: var(--paper);
+    background: var(--paper) !important;
+    background-attachment: scroll !important;
     min-height: 100dvh;
   }
   /* The desktop Folio floats a boxed page with generous padding
@@ -140,11 +141,13 @@ html { font-size: 16px; -webkit-font-smoothing: antialiased; scroll-behavior: sm
     min-height: 100vh;
     background: var(--paper);
   }
-  /* The grain overlay (.folio::before) and the ghost-code scroll
-     were both designed for desktop — at phone width the ghost-code
-     column reads as a muddy vertical smudge, and the multiply-blend
-     grain over candlelight paper gets splotchy. Quiet both. */
-  .folio::before { display: none; }
+  /* Atmospheric flourishes that only read well on a boxed desktop
+     page — on mobile they leak as gradient bands. Kill all three:
+       ::before — turbulent grain filter, goes splotchy
+       ::after  — vignette, reads as a left-side darkening band
+       .folio-ghost — pseudo-code scroll, reads as a muddy column */
+  .folio::before,
+  .folio::after { display: none !important; }
   .folio-ghost   { display: none !important; }
 }
 
@@ -1631,14 +1634,24 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   max-height: 88vh;
   overflow-y: auto;
 }
+.mobile-sheet-handle-zone {
+  /* a padded-out tap target around the visible handle pill — any
+     pointerdown inside this zone begins the drag-to-dismiss */
+  margin: -14px -22px 0;
+  padding: 14px 22px 4px;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
 .mobile-sheet-handle {
   width: 44px;
   height: 4px;
   background: var(--ash-light);
   border-radius: 2px;
-  margin: 0 auto 16px;
+  margin: 0 auto 12px;
   opacity: .5;
 }
+.mobile-sheet-backdrop { cursor: pointer; touch-action: manipulation; }
 .mobile-sheet-title {
   font-family: var(--display);
   font-variant: small-caps;

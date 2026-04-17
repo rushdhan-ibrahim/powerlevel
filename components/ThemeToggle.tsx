@@ -14,6 +14,14 @@ import { useEffect, useState } from "react";
 
 export const THEME_KEY = "powerlevel-theme";
 
+// Kept in sync with globals.css. The ThemeBootScript reads these at
+// first paint; the toggle updates them at runtime. Used for the iOS
+// status-bar / browser URL-bar tint.
+const THEME_COLORS = {
+  daylight:   "#ece6dc",
+  candlelight: "#15100a",
+};
+
 export function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const [theme, setTheme] = useState<"daylight" | "candlelight">("daylight");
   const [mounted, setMounted] = useState(false);
@@ -29,6 +37,11 @@ export function ThemeToggle({ compact = false }: { compact?: boolean }) {
     setTheme(next);
     localStorage.setItem(THEME_KEY, next);
     document.documentElement.dataset.theme = next === "candlelight" ? "candlelight" : "";
+    // Keep the <meta name="theme-color"> in sync so iOS tints its
+    // status bar / URL bar to match the page the user is actually
+    // seeing — not whatever the OS prefers-color-scheme says.
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", THEME_COLORS[next]);
   };
 
   // Until mounted we can't know the real state; render the shell in
@@ -101,7 +114,13 @@ export function ThemeBootScript() {
   const code = `
 (function(){try{
   var t = localStorage.getItem('${THEME_KEY}');
-  if(t === 'candlelight') document.documentElement.setAttribute('data-theme','candlelight');
+  if(t === 'candlelight') {
+    document.documentElement.setAttribute('data-theme','candlelight');
+    // also flip the theme-color meta right away so iOS picks the
+    // walnut tint for the status bar before the page paints.
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(m) m.setAttribute('content','${THEME_COLORS.candlelight}');
+  }
 }catch(e){}})();
   `.trim();
   return <script dangerouslySetInnerHTML={{ __html: code }} />;
