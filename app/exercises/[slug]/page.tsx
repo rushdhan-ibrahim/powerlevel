@@ -41,6 +41,14 @@ export default async function ExercisePage({
   const [raw, profile] = await Promise.all([
     prisma.workout.findMany({
       orderBy: { date: "asc" },
+      omit: {
+        rawParseJson: true,
+        parseModel: true,
+        parseTokensIn: true,
+        parseTokensOut: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       include: { exercises: { include: { sets: true } } },
     }),
     loadProfile(),

@@ -11,6 +11,14 @@ export const dynamic = "force-dynamic";
 export default async function TotalsPage() {
   const raw = await prisma.workout.findMany({
     orderBy: { date: "asc" },
+    omit: {
+      rawParseJson: true,
+      parseModel: true,
+      parseTokensIn: true,
+      parseTokensOut: true,
+      createdAt: true,
+      updatedAt: true,
+    },
     include: { exercises: { include: { sets: true } } },
   });
 

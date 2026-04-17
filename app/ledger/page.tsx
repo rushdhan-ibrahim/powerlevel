@@ -39,6 +39,14 @@ export const dynamic = "force-dynamic";
 export default async function LedgerPage() {
   const raw = await prisma.workout.findMany({
     orderBy: { date: "desc" },
+    omit: {
+      rawParseJson: true,
+      parseModel: true,
+      parseTokensIn: true,
+      parseTokensOut: true,
+      createdAt: true,
+      updatedAt: true,
+    },
     include: { exercises: { include: { sets: true } } },
   });
 

@@ -41,6 +41,17 @@ export async function Dashboard() {
   const [raw, profile] = await Promise.all([
     prisma.workout.findMany({
       orderBy: { date: "desc" },
+      omit: {
+        // Heavy fields nobody on the dashboard reads. rawParseJson in
+        // particular can be 10-50 KB per row — skipping it turned a
+        // ~1 MB query into ~50 KB.
+        rawParseJson: true,
+        parseModel: true,
+        parseTokensIn: true,
+        parseTokensOut: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       include: {
         exercises: { include: { sets: true }, orderBy: { order: "asc" } },
         sessionNotes: { orderBy: { order: "asc" } },

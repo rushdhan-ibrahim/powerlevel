@@ -26,6 +26,13 @@ export default async function WorkoutPage({
   const { id } = await params;
   const workout = await prisma.workout.findUnique({
     where: { id },
+    omit: {
+      // detail page shows the facsimile + structured log but not the
+      // raw Gemini parse — drop the biggest redundant field
+      rawParseJson: true,
+      createdAt: true,
+      updatedAt: true,
+    },
     include: {
       exercises: {
         orderBy: { order: "asc" },

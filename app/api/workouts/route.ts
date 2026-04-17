@@ -27,6 +27,14 @@ const SaveWorkoutBody = z.object({
 export async function GET() {
   const workouts = await prisma.workout.findMany({
     orderBy: { date: "desc" },
+    omit: {
+      rawParseJson: true,
+      parseModel: true,
+      parseTokensIn: true,
+      parseTokensOut: true,
+      createdAt: true,
+      updatedAt: true,
+    },
     include: {
       exercises: { include: { sets: true }, orderBy: { order: "asc" } },
       pages: { orderBy: { order: "asc" } },

@@ -15,6 +15,14 @@ export const dynamic = "force-dynamic";
 async function loadWorkouts() {
   return prisma.workout.findMany({
     orderBy: { date: "desc" },
+    omit: {
+      rawParseJson: true,
+      parseModel: true,
+      parseTokensIn: true,
+      parseTokensOut: true,
+      createdAt: true,
+      updatedAt: true,
+    },
     include: { exercises: { include: { sets: true } } },
   });
 }
