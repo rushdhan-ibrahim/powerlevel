@@ -35,6 +35,10 @@ type Props = {
 
 export function ChartLightbox({ title, caption, children, fullscreenChild }: Props) {
   const [open, setOpen] = useState(false);
+  // Gate the portal until we're mounted client-side — avoids any
+  // hydration/SSR confusion around document.body access.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const surfaceRef = useRef<HTMLDivElement>(null);
   // Timestamp of the opening tap — used to suppress the ghost
   // pointerup/click that lands on the scrim immediately after the
@@ -89,11 +93,10 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
           onPointerDown={(e) => {
             /* Fire on pointerdown to beat iOS's click synthesis and
                any parent scroll-snap handlers. stopPropagation so the
-               horizontal pager doesn't interpret this as a drag, and
-               preventDefault so the pointer doesn't also start a
-               drag-scrub on the chart below. */
+               horizontal pager doesn't interpret this as a drag. No
+               preventDefault — iOS needs the subsequent click flow to
+               dispatch cleanly. */
             e.stopPropagation();
-            e.preventDefault();
             openedAtRef.current = Date.now();
             setOpen(true);
           }}
@@ -112,7 +115,7 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
       </div>
 
       {open &&
-        typeof document !== "undefined" &&
+        mounted &&
         createPortal(
           /* Portal to document.body — the scrim's z-index:80 is only
              meaningful at the top of the stacking context. Plate wraps

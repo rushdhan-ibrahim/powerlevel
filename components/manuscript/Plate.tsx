@@ -35,18 +35,19 @@ export function Plate({
       <span className="plate-n">{numeral}</span>
       <span className="plate-t">{title}</span>
       {code && <pre className="plate-code">{code}</pre>}
-      <div className="relative z-[1]">
-        {expandable ? (
-          <ChartLightbox
-            title={title}
-            caption={typeof caption === "string" ? caption : undefined}
-          >
-            {children}
-          </ChartLightbox>
-        ) : (
-          children
-        )}
-      </div>
+      {/* The `.plate svg` global rule sets z-index:1 on the chart so it
+          sits above the ghost code underlay (z:0). A wrapper stacking
+          context here would trap the lightbox scrim beneath the folio. */}
+      {expandable ? (
+        <ChartLightbox
+          title={title}
+          caption={typeof caption === "string" ? caption : undefined}
+        >
+          {children}
+        </ChartLightbox>
+      ) : (
+        children
+      )}
       {caption && <figcaption className="plate-c">{caption}</figcaption>}
     </>
   );
