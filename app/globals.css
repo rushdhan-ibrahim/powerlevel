@@ -803,6 +803,127 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .set-table .pr-row .col-num { color: var(--rubric); }
 
 /* ════════════════════════════════════════════════════════════
+   LEDGER DISCLOSURE CARD — mobile replacement for the Ledger's
+   wide tables. One card per row; tap to reveal detail.
+   ════════════════════════════════════════════════════════════ */
+.ledger-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+.ledger-card {
+  background: var(--paper-warm);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  transition: border-color .15s var(--ease), background .15s var(--ease);
+}
+.ledger-card-open {
+  border-color: var(--rubric-soft);
+  background: var(--paper);
+}
+.ledger-card-head {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ledger-card-head:disabled {
+  cursor: default;
+}
+.ledger-card-head-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ledger-card-label {
+  font-family: var(--display);
+  font-variant: small-caps;
+  font-size: .58rem;
+  letter-spacing: .16em;
+  color: var(--ash);
+}
+.ledger-card-primary {
+  font-family: var(--mono);
+  font-size: .95rem;
+  color: var(--ink);
+  font-variant-numeric: oldstyle-nums tabular-nums;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ledger-card-primary .rubric {
+  color: var(--rubric);
+}
+.ledger-card-primary .muted {
+  color: var(--ash);
+  font-size: .78rem;
+}
+.ledger-card-badge {
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .7rem;
+  color: var(--ash);
+  white-space: nowrap;
+  padding-left: 8px;
+  border-left: 1px solid var(--rule-faint);
+}
+.ledger-card-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  color: var(--ash);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  transition: color .15s var(--ease), border-color .15s var(--ease);
+}
+.ledger-card-open .ledger-card-chevron {
+  color: var(--rubric);
+  border-color: var(--rubric-soft);
+}
+.ledger-card-body {
+  border-top: 1px solid var(--rule-faint);
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: .76rem;
+  color: var(--ink-light);
+  font-variant-numeric: oldstyle-nums tabular-nums;
+  animation: ledgerCardReveal .2s var(--ease);
+}
+@keyframes ledgerCardReveal {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.ledger-card-body-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ledger-card-body-row > .label {
+  font-family: var(--italic);
+  font-style: italic;
+  font-size: .74rem;
+  color: var(--ash);
+}
+.ledger-card-body-row > .value {
+  color: var(--ink);
+}
+
+/* ════════════════════════════════════════════════════════════
    DIALOG — confirm boxes with hairline serifs
    ════════════════════════════════════════════════════════════ */
 

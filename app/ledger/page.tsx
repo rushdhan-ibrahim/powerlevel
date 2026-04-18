@@ -15,6 +15,7 @@ import {
   strengthRatios,
   type KeyLiftRow,
   type MuscleVolumeRow,
+  type ProgressionRow,
   type RatioRow,
   type FrequencyRow,
 } from "@/lib/training";
@@ -32,6 +33,7 @@ import { Vitruvian } from "@/components/manuscript/plates/Vitruvian";
 import { RepRangeWheel } from "@/components/manuscript/plates/RepRangeWheel";
 import { LoadChain } from "@/components/manuscript/plates/LoadChain";
 import { ColophonSeal } from "@/components/manuscript/Seal";
+import { LedgerDisclosureCard } from "@/components/manuscript/LedgerDisclosureCard";
 import { roman } from "@/lib/manuscript";
 
 export const revalidate = 60;
@@ -230,7 +232,7 @@ export default async function LedgerPage() {
       <div className="plate" style={{ padding: 18 }}>
         <span className="plate-n">i</span>
         <span className="plate-t">Key lifts · current estimates</span>
-        <table className="set-table" style={{ marginTop: 22 }}>
+        <table className="set-table desktop-only" style={{ marginTop: 22 }}>
           <thead>
             <tr>
               <th>lift</th>
@@ -247,6 +249,11 @@ export default async function LedgerPage() {
             ))}
           </tbody>
         </table>
+        <div className="ledger-cards mobile-only">
+          {lifts.map((l) => (
+            <KeyLiftCard key={l.key} row={l} />
+          ))}
+        </div>
       </div>
 
       <Ornament variant="hollow" />
@@ -293,7 +300,7 @@ export default async function LedgerPage() {
         <div className="plate" style={{ padding: 18 }}>
           <span className="plate-n">v</span>
           <span className="plate-t">Volume vs target</span>
-          <table className="set-table" style={{ marginTop: 22 }}>
+          <table className="set-table desktop-only" style={{ marginTop: 22 }}>
             <thead>
               <tr>
                 <th>muscle</th>
@@ -309,6 +316,11 @@ export default async function LedgerPage() {
               ))}
             </tbody>
           </table>
+          <div className="ledger-cards mobile-only">
+            {muscles.map((m) => (
+              <VolumeCard key={m.group} row={m} />
+            ))}
+          </div>
         </div>
 
         <Plate
@@ -386,7 +398,7 @@ export default async function LedgerPage() {
       <div className="plate" style={{ padding: 18 }}>
         <span className="plate-n">ix</span>
         <span className="plate-t">Direction of travel · recent sessions</span>
-        <table className="set-table" style={{ marginTop: 22 }}>
+        <table className="set-table desktop-only" style={{ marginTop: 22 }}>
           <thead>
             <tr>
               <th>n</th>
@@ -463,6 +475,17 @@ export default async function LedgerPage() {
             )}
           </tbody>
         </table>
+        <div className="ledger-cards mobile-only">
+          {progression.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "20px 0", color: "var(--ash)", fontFamily: "var(--italic)", fontStyle: "italic", fontSize: ".8rem" }}>
+              need at least three sessions of a lift to signal a trend
+            </div>
+          ) : (
+            progression.map((p, i) => (
+              <ProgressionCard key={p.normalizedName} row={p} n={i + 1} />
+            ))
+          )}
+        </div>
       </div>
 
       <Ornament variant="star" />
@@ -510,7 +533,7 @@ export default async function LedgerPage() {
         <div className="plate" style={{ padding: 18 }}>
           <span className="plate-n">xi</span>
           <span className="plate-t">Weekly frequency per muscle</span>
-          <table className="set-table" style={{ marginTop: 22 }}>
+          <table className="set-table desktop-only" style={{ marginTop: 22 }}>
             <thead>
               <tr>
                 <th>muscle</th>
@@ -525,6 +548,11 @@ export default async function LedgerPage() {
               ))}
             </tbody>
           </table>
+          <div className="ledger-cards mobile-only">
+            {frequency.map((f) => (
+              <FrequencyCard key={f.group} row={f} />
+            ))}
+          </div>
         </div>
 
         <div className="plate" style={{ padding: 18 }}>
@@ -873,3 +901,228 @@ const ACWR_NOTE: Record<"undertrained" | "sweet" | "caution" | "spike", string> 
   spike:
     "Acute load has spiked well above chronic. Injury and overtraining risk rises here. Consider a lighter week or two sessions of deload.",
 };
+
+/* ─── mobile disclosure cards ─────────────────────────────── */
+
+function KeyLiftCard({ row }: { row: KeyLiftRow }) {
+  if (!row.found) {
+    return (
+      <LedgerDisclosureCard
+        label={row.label}
+        primary={<span className="muted">not yet logged</span>}
+      />
+    );
+  }
+  const trendTint =
+    row.trend === "up"
+      ? "var(--rubric)"
+      : row.trend === "down"
+        ? "var(--ash)"
+        : undefined;
+  return (
+    <LedgerDisclosureCard
+      label={row.label}
+      tint={trendTint}
+      primary={
+        <>
+          <span className={row.rubric ? "rubric" : ""}>{row.e1RM}</span>
+          <span className="muted">kg · est. 1RM</span>
+        </>
+      }
+      badge={
+        <>
+          <TrendGlyph
+            trend={row.trend === "new" || row.trend === "none" ? "flat" : row.trend}
+          />
+          {row.deltaPct != null && (
+            <span style={{ marginLeft: 4 }}>
+              {row.deltaPct > 0 ? "+" : ""}
+              {row.deltaPct}%
+            </span>
+          )}
+        </>
+      }
+      secondary={
+        <>
+          <div className="ledger-card-body-row">
+            <span className="label">all-time peak</span>
+            <span className="value">{row.peakE1RM} kg</span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">top set</span>
+            <span className="value">
+              {row.topSet ? `${row.topSet.weight} × ${row.topSet.reps}` : "—"}
+            </span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">last done</span>
+            <span className="value">
+              {row.lastSessionDate
+                ? formatDistanceToNow(row.lastSessionDate, { addSuffix: true })
+                : "—"}
+            </span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">sessions</span>
+            <span className="value">{row.sessions}</span>
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+function VolumeCard({ row }: { row: MuscleVolumeRow }) {
+  const color = VOLUME_STATUS_COLOR[row.status];
+  const glyph = VOLUME_STATUS_GLYPH[row.status];
+  const label = VOLUME_STATUS_LABEL[row.status];
+  return (
+    <LedgerDisclosureCard
+      label={row.label}
+      tint={row.status === "mav" || row.status === "above" ? "var(--rubric)" : undefined}
+      primary={
+        <>
+          <span style={{ color }}>{row.lastWeek}</span>
+          <span className="muted">sets · this week</span>
+        </>
+      }
+      badge={
+        <span style={{ color }}>
+          <span style={{ marginRight: 4 }}>{glyph}</span>
+          {label}
+        </span>
+      }
+      secondary={
+        <>
+          <div className="ledger-card-body-row">
+            <span className="label">4-week avg</span>
+            <span className="value">{row.fourWeekAvg}</span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">MAV target</span>
+            <span className="value">
+              {row.mavLow}–{row.mavHigh}
+            </span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">MEV · floor</span>
+            <span className="value">{row.mev}</span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">MRV · ceiling</span>
+            <span className="value">{row.mrv}</span>
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+function ProgressionCard({ row, n }: { row: ProgressionRow; n: number }) {
+  const trendColor =
+    row.trend === "up"
+      ? "var(--rubric)"
+      : row.trend === "down"
+        ? "var(--ash)"
+        : "var(--ink-light)";
+  const trendWord =
+    row.trend === "up"
+      ? "ascending"
+      : row.trend === "down"
+        ? "declining"
+        : "stable";
+  return (
+    <LedgerDisclosureCard
+      label={
+        <>
+          <span style={{ color: "var(--rubric)", marginRight: 6 }}>
+            {roman(n).toLowerCase()}
+          </span>
+          {row.displayName}
+        </>
+      }
+      tint={row.trend === "up" ? "var(--rubric)" : undefined}
+      primary={
+        <>
+          <span className="rubric">{row.currentE1RM}</span>
+          <span className="muted">
+            kg · {row.deltaPct > 0 ? "+" : ""}
+            {row.deltaPct}%
+          </span>
+        </>
+      }
+      badge={
+        <span style={{ color: trendColor }}>
+          <TrendGlyph trend={row.trend} /> {trendWord}
+        </span>
+      }
+      secondary={
+        <>
+          <div className="ledger-card-body-row">
+            <span className="label">all-time peak</span>
+            <span className="value">{row.peakE1RM} kg</span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">sessions</span>
+            <span className="value">{row.sessions}</span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">last done</span>
+            <span className="value">
+              {formatDistanceToNow(row.lastDate, { addSuffix: true })}
+            </span>
+          </div>
+          <div className="ledger-card-body-row">
+            <Link
+              href={`/exercises/${encodeURIComponent(row.normalizedName)}`}
+              className="q-link"
+              style={{ fontSize: ".78rem" }}
+            >
+              open full history &rarr;
+            </Link>
+          </div>
+        </>
+      }
+    />
+  );
+}
+
+function FrequencyCard({ row }: { row: FrequencyRow }) {
+  const color =
+    row.status === "low"
+      ? "var(--ash)"
+      : row.status === "ample"
+        ? "var(--rubric)"
+        : "var(--ink-light)";
+  const statusLabel =
+    row.status === "low"
+      ? "under 2× / wk"
+      : row.status === "ample"
+        ? "well covered"
+        : "adequate";
+  return (
+    <LedgerDisclosureCard
+      label={row.label}
+      tint={row.status === "ample" ? "var(--rubric)" : row.status === "low" ? "var(--ash)" : undefined}
+      primary={
+        <>
+          <span style={{ color }}>{row.weeklyFrequency}×</span>
+          <span className="muted">per week · avg</span>
+        </>
+      }
+      badge={<span style={{ color }}>{statusLabel}</span>}
+      secondary={
+        <>
+          <div className="ledger-card-body-row">
+            <span className="label">sessions · last 7d</span>
+            <span className="value">{row.sessionsLast7}</span>
+          </div>
+          <div className="ledger-card-body-row">
+            <span className="label">sessions · last 28d</span>
+            <span className="value">{row.sessionsLast28}</span>
+          </div>
+        </>
+      }
+    />
+  );
+}
