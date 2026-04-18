@@ -2571,10 +2571,20 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .chart-lightbox-chart-inner {
   width: 100%;
   height: 100%;
+  /* Column direction so plates with multiple children (e.g. the
+     Progression plate's LiftPicker + InkLineChart) stack vertically.
+     The chart child below gets flex:1 so it absorbs the remaining
+     vertical space. */
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 12px;
   will-change: transform;
+}
+.chart-lightbox-chart-inner > svg {
+  flex: 1;
+  min-height: 0;
 }
 .chart-lightbox-chart svg {
   width: 100%;
