@@ -2595,8 +2595,18 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   /* Override the chart's inline touch-action:none so iOS can pinch. */
   touch-action: pan-x pan-y pinch-zoom !important;
 }
+/* Scrub-rect behaviour in the lightbox:
+    - At scale 1, scrub is the expected single-finger gesture (same as
+      the inline chart). pointer-events stay on.
+    - touch-action flipped from \"none\" (inline) to \"pinch-zoom\" so
+      iOS still recognises two-finger gestures over the rect and
+      dispatches gesturestart to the outer element.
+    - Once scale > 1, single-finger drag becomes pan, so the scrub
+      rect steps out of the way. */
 .chart-lightbox-chart .chart-scrub-rect {
-  /* Disable drag-scrub inside the lightbox — pinch/pan beats it. */
+  touch-action: pinch-zoom !important;
+}
+.chart-lightbox-chart[data-zoomed="true"] .chart-scrub-rect {
   pointer-events: none !important;
 }
 

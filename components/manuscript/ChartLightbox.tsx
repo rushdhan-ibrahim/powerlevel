@@ -224,6 +224,7 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
                 className="chart-lightbox-chart"
                 ref={chartRef}
                 onDoubleClick={onChartDoubleClick}
+                data-zoomed={scale > 1 ? "true" : undefined}
               >
                 <div
                   className="chart-lightbox-chart-inner"
@@ -239,8 +240,8 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
               <div className="chart-lightbox-hint">
                 <span>
                   {scale > 1
-                    ? "drag to pan · double-tap to reset · tap outside to close"
-                    : "pinch to zoom · double-tap to reset · tap outside to close"}
+                    ? "drag to pan · pinch to zoom · double-tap to reset"
+                    : "drag to scrub · pinch to zoom · tap outside to close"}
                 </span>
               </div>
             </div>
