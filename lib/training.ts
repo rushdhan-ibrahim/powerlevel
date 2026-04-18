@@ -1,6 +1,7 @@
 import { differenceInCalendarDays, format, startOfWeek, subDays } from "date-fns";
 import {
   bestE1RM,
+  liftKey,
   setTonnage,
   toKg,
   workoutTonnage,
@@ -315,6 +316,11 @@ export function progressionSignals(
   workouts: WorkoutRow[],
   minSessions: number = 3,
 ): ProgressionRow[] {
+  // Group by `liftKey` so this function's row identity matches what
+  // /exercises/[slug] expects. Two casings of "bench press" collapse
+  // into a single lift. We still surface the field as `normalizedName`
+  // because downstream consumers already use that field as a URL slug
+  // (matches topExercisesByFrequency's convention).
   const byLift = new Map<
     string,
     { displayName: string; sessions: { date: Date; e1RM: number }[] }
@@ -324,13 +330,15 @@ export function progressionSignals(
     for (const ex of w.exercises) {
       const e = bestE1RM(ex.sets);
       if (e === 0) continue;
-      const cur = byLift.get(ex.normalizedName) ?? {
+      const key = liftKey(ex);
+      if (!key) continue;
+      const cur = byLift.get(key) ?? {
         displayName: ex.name,
         sessions: [],
       };
       cur.sessions.push({ date: w.date, e1RM: e });
       cur.displayName = ex.name;
-      byLift.set(ex.normalizedName, cur);
+      byLift.set(key, cur);
     }
   }
 
