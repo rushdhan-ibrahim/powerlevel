@@ -457,8 +457,16 @@ body {
   gap: 16px;
   margin: 18px 0;
 }
+.plate-grid-wide-left {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+.plate-grid-balanced {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+}
 @media (max-width: 700px) {
-  .plate-grid { grid-template-columns: 1fr; }
+  .plate-grid,
+  .plate-grid-wide-left,
+  .plate-grid-balanced { grid-template-columns: 1fr; }
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -804,23 +812,25 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 
 /* ════════════════════════════════════════════════════════════
    LEDGER DISCLOSURE CARD — mobile replacement for the Ledger's
-   wide tables. One card per row; tap to reveal detail.
+   wide tables. Shares the visual vocabulary of the history-card:
+   quiet hairline border at rest, rubric border when expanded,
+   paper-warm surface throughout. No side-stripe accent — status
+   colour lives in the primary metric itself, not the frame.
    ════════════════════════════════════════════════════════════ */
 .ledger-cards {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   margin-top: 16px;
 }
 .ledger-card {
+  border: 1px solid var(--rule-soft);
   background: var(--paper-warm);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  transition: border-color .15s var(--ease), background .15s var(--ease);
+  overflow: hidden;
+  transition: border-color .2s var(--ease), background .2s var(--ease);
 }
-.ledger-card-open {
-  border-color: var(--rubric-soft);
-  background: var(--paper);
+.ledger-card.is-open {
+  border-color: var(--rubric);
 }
 .ledger-card-head {
   all: unset;
@@ -829,13 +839,16 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   cursor: pointer;
   touch-action: manipulation;
+  color: var(--ink);
+  text-align: left;
 }
 .ledger-card-head:disabled {
   cursor: default;
 }
+.ledger-card-head:active { background: var(--paper-mid); }
 .ledger-card-head-text {
   flex: 1;
   min-width: 0;
@@ -870,35 +883,32 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .ledger-card-badge {
   font-family: var(--italic);
   font-style: italic;
-  font-size: .7rem;
+  font-size: .72rem;
   color: var(--ash);
   white-space: nowrap;
-  padding-left: 8px;
-  border-left: 1px solid var(--rule-faint);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.ledger-card-chevron {
+.ledger-card-chev {
+  color: var(--ash);
+  font-family: var(--mono);
+  font-size: 1rem;
+  width: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
-  color: var(--ash);
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  transition: color .15s var(--ease), border-color .15s var(--ease);
+  transition: transform .2s var(--ease), color .2s var(--ease);
 }
-.ledger-card-open .ledger-card-chevron {
-  color: var(--rubric);
-  border-color: var(--rubric-soft);
-}
+.ledger-card.is-open .ledger-card-chev { color: var(--rubric); }
 .ledger-card-body {
   border-top: 1px solid var(--rule-faint);
-  padding: 10px 12px 12px;
+  padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font-family: var(--mono);
-  font-size: .76rem;
+  font-size: .78rem;
   color: var(--ink-light);
   font-variant-numeric: oldstyle-nums tabular-nums;
   animation: ledgerCardReveal .2s var(--ease);
@@ -916,7 +926,7 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
 .ledger-card-body-row > .label {
   font-family: var(--italic);
   font-style: italic;
-  font-size: .74rem;
+  font-size: .76rem;
   color: var(--ash);
 }
 .ledger-card-body-row > .value {
@@ -2432,35 +2442,15 @@ a.q-link-rubric:hover { color: var(--rubric-deep); border-bottom-color: var(--ru
    CHART LIGHTBOX — tap-to-expand for mobile chart legibility
    ════════════════════════════════════════════════════════════════ */
 
-.chart-lightbox-anchor { position: relative; }
-.chart-lightbox-expand {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 32px;
-  height: 32px;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, var(--paper) 92%, transparent);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  color: var(--rubric);
+.chart-lightbox-anchor {
+  position: relative;
   cursor: zoom-in;
-  transition: color .15s var(--ease), border-color .15s var(--ease), background .15s var(--ease);
-  /* Above the plate title (z:2) and the ghost code underlay so the
-     tap target is never covered, and above the chart SVG whose
-     interaction rect sits inside its own viewport. */
-  z-index: 3;
-  /* Kill the iOS 300ms click delay on this target. */
   touch-action: manipulation;
-  /* Default hidden on desktop — charts have room. Mobile overrides. */
-  display: none;
 }
-@media (max-width: 767.98px) {
-  .chart-lightbox-expand { display: flex; }
+.chart-lightbox-anchor:focus-visible {
+  outline: 1.5px solid var(--rubric);
+  outline-offset: 4px;
 }
-.chart-lightbox-expand:hover { color: var(--rubric); border-color: var(--rubric); }
-.chart-lightbox-expand:active { transform: scale(.94); }
 
 .chart-lightbox-scrim {
   position: fixed;

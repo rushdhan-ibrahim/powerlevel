@@ -161,38 +161,28 @@ export function ChartLightbox({ title, caption, children, fullscreenChild }: Pro
 
   return (
     <>
-      {/* In-place chart + an "expand" affordance in the corner. The
-          whole surface is clickable; tapping the affordance alone
-          also works (and doesn't compete with the thumb-scrub if the
-          user is dragging along the chart). */}
-      <div className="chart-lightbox-anchor">
+      {/* The whole chart surface is the tap target on mobile. Click
+          fires only when pointerdown + pointerup happen close in
+          space + time, so a drag-scrub on the underlying chart stays
+          separate from a tap-to-expand gesture. */}
+      <div
+        className="chart-lightbox-anchor"
+        onClick={() => {
+          openedAtRef.current = Date.now();
+          setOpen(true);
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={title ? `expand ${title}` : "expand chart"}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openedAtRef.current = Date.now();
+            setOpen(true);
+          }
+        }}
+      >
         {children}
-        <button
-          type="button"
-          className="chart-lightbox-expand"
-          aria-label="expand chart"
-          onPointerDown={(e) => {
-            /* Fire on pointerdown to beat iOS's click synthesis and
-               any parent scroll-snap handlers. stopPropagation so the
-               horizontal pager doesn't interpret this as a drag. No
-               preventDefault — iOS needs the subsequent click flow to
-               dispatch cleanly. */
-            e.stopPropagation();
-            openedAtRef.current = Date.now();
-            setOpen(true);
-          }}
-          onClick={(e) => {
-            /* Some browsers don't fire pointerdown reliably (e.g. when
-               a keyboard triggers the button). Keep click as a fallback. */
-            e.stopPropagation();
-            openedAtRef.current = Date.now();
-            setOpen(true);
-          }}
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-            <path d="M1,5 V1 H5 M9,1 H13 V5 M13,9 V13 H9 M5,13 H1 V9" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </button>
       </div>
 
       {open &&

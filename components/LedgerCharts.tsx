@@ -93,6 +93,7 @@ export function LedgerCharts({
         numeral="ii"
         title="Progression"
         caption={active ? `estimated 1RM over time · ${active.label}` : "no lifts to chart"}
+        expandable
       >
         <LiftPicker
           lifts={liftOptions}
@@ -120,6 +121,7 @@ export function LedgerCharts({
           numeral="iii"
           title="Weekly tonnage"
           caption="total kg moved per week · last 12 weeks"
+          expandable
         >
           <InkLineChart
             series={tonnagePoints}
@@ -135,6 +137,7 @@ export function LedgerCharts({
           numeral="iv"
           title="Rep-range rhythm"
           caption="working sets by rep range · last 12 weeks · rubric = current"
+          expandable
         >
           <StackedBand data={repRangeWeekly} height={220} />
         </Plate>

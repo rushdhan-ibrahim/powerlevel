@@ -293,10 +293,7 @@ export default async function LedgerPage() {
         at a glance.
       </p>
 
-      <div
-        className="plate-grid"
-        style={{ gridTemplateColumns: "minmax(0, 1.4fr) minmax(0, 1fr)" }}
-      >
+      <div className="plate-grid plate-grid-wide-left">
         <div className="plate" style={{ padding: 18 }}>
           <span className="plate-n">v</span>
           <span className="plate-t">Volume vs target</span>
@@ -526,10 +523,7 @@ export default async function LedgerPage() {
         your rest days and the longest current training streak.
       </p>
 
-      <div
-        className="plate-grid"
-        style={{ gridTemplateColumns: "minmax(0, 1.2fr) minmax(0, 1fr)" }}
-      >
+      <div className="plate-grid plate-grid-balanced">
         <div className="plate" style={{ padding: 18 }}>
           <span className="plate-n">xi</span>
           <span className="plate-t">Weekly frequency per muscle</span>
@@ -868,9 +862,37 @@ function RecoveryStat({
 }
 
 function TrendGlyph({ trend }: { trend: "up" | "flat" | "down" }) {
-  if (trend === "up") return <span style={{ color: "var(--rubric)" }}>↗</span>;
-  if (trend === "down") return <span style={{ color: "var(--ash)" }}>↘</span>;
-  return <span style={{ color: "var(--ink-light)" }}>→</span>;
+  // Hand-cut SVG so iOS doesn't render unicode arrows as emoji.
+  // Thin rubric hairline from a terminal dot to a small filled
+  // chevron head — same vocabulary as the plate ornaments.
+  const color =
+    trend === "up"
+      ? "var(--rubric)"
+      : trend === "down"
+        ? "var(--ash)"
+        : "var(--ink-light)";
+  const path =
+    trend === "up"
+      ? // tail at bottom-left, head at top-right
+        { line: "M2,12 L11,3", head: "11,3 11,7 7,3" }
+      : trend === "down"
+        ? // tail at top-left, head at bottom-right
+          { line: "M2,2 L11,11", head: "11,11 11,7 7,11" }
+        : // tail at left, head at right
+          { line: "M2,7 L10,7", head: "10,7 7,4.5 7,9.5" };
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 14 14"
+      aria-hidden="true"
+      style={{ verticalAlign: "-2px", color, flex: "0 0 auto" }}
+    >
+      <circle cx={trend === "down" ? 2 : 2} cy={trend === "up" ? 12 : trend === "down" ? 2 : 7} r="1" fill="currentColor" opacity=".65" />
+      <path d={path.line} stroke="currentColor" strokeWidth="1.1" strokeLinecap="round" fill="none" />
+      <polygon points={path.head} fill="currentColor" />
+    </svg>
+  );
 }
 
 const VOLUME_STATUS_GLYPH: Record<MuscleVolumeRow["status"], string> = {
@@ -913,16 +935,9 @@ function KeyLiftCard({ row }: { row: KeyLiftRow }) {
       />
     );
   }
-  const trendTint =
-    row.trend === "up"
-      ? "var(--rubric)"
-      : row.trend === "down"
-        ? "var(--ash)"
-        : undefined;
   return (
     <LedgerDisclosureCard
       label={row.label}
-      tint={trendTint}
       primary={
         <>
           <span className={row.rubric ? "rubric" : ""}>{row.e1RM}</span>
@@ -979,7 +994,6 @@ function VolumeCard({ row }: { row: MuscleVolumeRow }) {
   return (
     <LedgerDisclosureCard
       label={row.label}
-      tint={row.status === "mav" || row.status === "above" ? "var(--rubric)" : undefined}
       primary={
         <>
           <span style={{ color }}>{row.lastWeek}</span>
@@ -1041,7 +1055,6 @@ function ProgressionCard({ row, n }: { row: ProgressionRow; n: number }) {
           {row.displayName}
         </>
       }
-      tint={row.trend === "up" ? "var(--rubric)" : undefined}
       primary={
         <>
           <span className="rubric">{row.currentE1RM}</span>
@@ -1103,7 +1116,6 @@ function FrequencyCard({ row }: { row: FrequencyRow }) {
   return (
     <LedgerDisclosureCard
       label={row.label}
-      tint={row.status === "ample" ? "var(--rubric)" : row.status === "low" ? "var(--ash)" : undefined}
       primary={
         <>
           <span style={{ color }}>{row.weeklyFrequency}×</span>

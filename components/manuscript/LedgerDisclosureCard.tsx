@@ -7,9 +7,10 @@
  * (peak, 4-week average, target range, etc.) without reloading or
  * navigating away.
  *
- * Visual vocabulary matches the existing plate aesthetic: paper
- * surface, hairline border, rubric accent on active/attention rows.
- * A small + / − affordance in the top-right cues the disclosure.
+ * Visual language matches the History tab's expandable day-card:
+ * quiet hairline border at rest, clean rubric outline when open,
+ * paper-warm surface throughout. Status colour lives in the primary
+ * metric — no side-stripe accent on the frame.
  */
 
 import { ReactNode, useState } from "react";
@@ -18,12 +19,10 @@ type Props = {
   label: ReactNode;
   primary: ReactNode;
   secondary?: ReactNode;
-  /** Small badge/chip to the right of the primary metric (e.g. "ascending"). */
+  /** Small badge (e.g. "ascending", "in mav") shown to the right of the
+   *  primary line — should carry the status colour itself. */
   badge?: ReactNode;
-  /** Optional accent colour on the left edge — used for status (rubric for
-   *  attention, ash for declining, etc.). */
-  tint?: string;
-  /** Show the expand chevron. Defaults to true when secondary is present. */
+  /** Defaults to `true` when secondary is present. */
   expandable?: boolean;
 };
 
@@ -32,16 +31,12 @@ export function LedgerDisclosureCard({
   primary,
   secondary,
   badge,
-  tint,
   expandable,
 }: Props) {
   const [open, setOpen] = useState(false);
   const canOpen = (expandable ?? secondary != null) && secondary != null;
   return (
-    <div
-      className={`ledger-card${open ? " ledger-card-open" : ""}`}
-      style={tint ? { boxShadow: `inset 3px 0 0 0 ${tint}` } : undefined}
-    >
+    <div className={`ledger-card${open ? " is-open" : ""}`}>
       <button
         type="button"
         className="ledger-card-head"
@@ -55,15 +50,8 @@ export function LedgerDisclosureCard({
         </div>
         {badge && <div className="ledger-card-badge">{badge}</div>}
         {canOpen && (
-          <span className="ledger-card-chevron" aria-hidden="true">
-            <svg width="12" height="12" viewBox="0 0 12 12">
-              <path
-                d={open ? "M2,5 L10,5" : "M2,6 L10,6 M6,2 L6,10"}
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-              />
-            </svg>
+          <span className="ledger-card-chev" aria-hidden="true">
+            {open ? "▾" : "▸"}
           </span>
         )}
       </button>
