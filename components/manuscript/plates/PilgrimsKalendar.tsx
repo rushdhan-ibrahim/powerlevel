@@ -13,7 +13,6 @@
  */
 
 import { format, getISOWeek, parseISO } from "date-fns";
-import { roman } from "@/lib/manuscript";
 
 type Day = { date: string; km: number; runs: number };
 
@@ -219,7 +218,7 @@ export function PilgrimsKalendar({ days }: { days: Day[] }) {
               textAnchor="middle"
               opacity=".85"
             >
-              {`wk ${roman(getISOWeek(today)).toLowerCase()}`}
+              {`wk ${getISOWeek(today)}`}
             </text>
           </g>
         );

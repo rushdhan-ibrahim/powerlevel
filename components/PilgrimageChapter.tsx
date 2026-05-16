@@ -76,7 +76,7 @@ export async function PilgrimageChapter({ sectionN }: { sectionN: number }) {
         <ChapterOpener
           n={roman(sectionN).toLowerCase()}
           title="The Pilgrimage"
-          caption="the running half of the chronicle — every road, every pulse, every rest."
+          caption={`${o.totals.km.toFixed(0)} km on foot since ${o.totals.firstRun ? format(o.totals.firstRun, "MMMM yyyy").toLowerCase() : "the first run"} — every road, every pulse, every rest.`}
           glyph="compass"
         />
 
@@ -116,6 +116,33 @@ export async function PilgrimageChapter({ sectionN }: { sectionN: number }) {
             sub={acwrLabel}
             subWarn={o.acwr.status === "spike" || o.acwr.status === "caution"}
           />
+        </div>
+
+        {/* Lifetime band — single rule line beneath the hero, marginalia size.
+            The big numbers live on the stat cards above; this is the slow
+            cumulative reading, the manuscript's "since" line. */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "baseline",
+            gap: 18,
+            flexWrap: "wrap",
+            margin: "18px 0 4px",
+            paddingTop: 10,
+            borderTop: "1px solid var(--rule-soft)",
+            fontFamily: "var(--italic)",
+            fontStyle: "italic",
+            fontSize: ".82rem",
+            color: "var(--ash)",
+          }}
+        >
+          <span>
+            since {o.totals.firstRun ? format(o.totals.firstRun, "d MMM yyyy").toLowerCase() : "—"}
+          </span>
+          <LifetimeStat value={o.totals.km.toFixed(1)} unit="km on foot" />
+          <LifetimeStat value={o.totals.hours.toFixed(0)} unit="hours" />
+          <LifetimeStat value={String(o.totals.runs)} unit={o.totals.runs === 1 ? "run" : "runs"} />
         </div>
 
         <Ornament variant="diamond" />
@@ -203,5 +230,26 @@ export async function PilgrimageChapter({ sectionN }: { sectionN: number }) {
         </div>
       </section>
     </>
+  );
+}
+
+/** Inline lifetime-band token: a tabular numeric value followed by an
+ *  italic unit. Used in the "since …" rule beneath the hero. */
+function LifetimeStat({ value, unit }: { value: string; unit: string }) {
+  return (
+    <span>
+      <span
+        className="numerals"
+        style={{
+          fontStyle: "normal",
+          color: "var(--ink-light)",
+          fontFamily: "var(--mono)",
+          letterSpacing: ".02em",
+        }}
+      >
+        {value}
+      </span>{" "}
+      <span style={{ color: "var(--ash)" }}>{unit}</span>
+    </span>
   );
 }
