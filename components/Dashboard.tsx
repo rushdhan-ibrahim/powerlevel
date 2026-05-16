@@ -35,6 +35,7 @@ import { PendulumChoir } from "@/components/manuscript/plates/PendulumChoir";
 import { Chaplet } from "@/components/manuscript/plates/Chaplet";
 import { PilgrimStar } from "@/components/manuscript/plates/PilgrimStar";
 import { Phyllotaxis } from "@/components/manuscript/plates/Phyllotaxis";
+import { PilgrimageChapter } from "@/components/PilgrimageChapter";
 import { roman } from "@/lib/manuscript";
 
 export async function Dashboard() {
@@ -513,6 +514,14 @@ export async function Dashboard() {
       >
         <Phyllotaxis count={totals.sessions} />
       </Plate>
+
+      <Ornament variant="diamond" />
+
+      {/* §VII THE PILGRIMAGE — runs, sourced from Garmin / FIT imports.
+          Owns its own data fetch so the lifting half of this file stays
+          untouched. The chapter renders nothing visible (just a small
+          principle callout) when no runs have been imported yet. */}
+      <PilgrimageChapter sectionN={7} />
 
       <Ornament variant="diamond" />
 
