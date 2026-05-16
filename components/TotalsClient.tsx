@@ -25,18 +25,26 @@ import { ColophonSeal } from "@/components/manuscript/Seal";
 import { PeriodBrush } from "@/components/manuscript/PeriodBrush";
 import { RepCounter } from "@/components/RepCounter";
 import { liftKey, toKg } from "@/lib/insights";
+import { inPeriod as runsInPeriod, periodTotals as runPeriodTotals, type RunRow } from "@/lib/pilgrimage/totals";
 
 type SerialisedWorkout = Omit<WorkoutRow, "date"> & { date: string };
 
+type SerialisedRun = Omit<RunRow, "date"> & { date: string };
+
 type Props = {
   workouts: SerialisedWorkout[];
+  runs?: SerialisedRun[];
   todayIso: string;
 };
 
-export function TotalsClient({ workouts: raw, todayIso }: Props) {
+export function TotalsClient({ workouts: raw, runs: rawRuns, todayIso }: Props) {
   const workouts = useMemo<WorkoutRow[]>(
     () => raw.map((w) => ({ ...w, date: new Date(w.date) })),
     [raw],
+  );
+  const runs = useMemo<RunRow[]>(
+    () => (rawRuns ?? []).map((r) => ({ ...r, date: new Date(r.date) })),
+    [rawRuns],
   );
 
   // "today" is frozen at SSR time so that server- and client-rendered SVG
@@ -63,6 +71,11 @@ export function TotalsClient({ workouts: raw, todayIso }: Props) {
   const selected = useMemo(() => inPeriod(workouts, period), [workouts, period]);
   const totals = useMemo(() => periodTotals(selected), [selected]);
   const exTotals = useMemo(() => exerciseTotalsInPeriod(workouts, period), [workouts, period]);
+
+  // Pilgrimage (running) totals — the same period scopes the run set.
+  const selectedRuns = useMemo(() => runsInPeriod(runs, period), [runs, period]);
+  const runTotals = useMemo(() => runPeriodTotals(selectedRuns), [selectedRuns]);
+  const lifetimeRunTotals = useMemo(() => runPeriodTotals(runs), [runs]);
 
   // ─── data for the Rep Counter section ────────────────────────
   // Walk every exercise across all history, group by liftKey, find the
@@ -239,6 +252,23 @@ export function TotalsClient({ workouts: raw, todayIso }: Props) {
       {/* INSIGHTS — short prose summaries */}
       <ChapterOpener n="iv" title="Notes from the period" caption="what the numbers say in plain English" glyph="seed" />
       <PeriodNotes totals={totals} exTotals={exTotals} />
+
+      {/* §V Pilgrimage — the same period scopes the run set. Only renders
+          when at least one run exists in the database. */}
+      {runs.length > 0 && (
+        <>
+          <Ornament variant="diamond" />
+          <ChapterOpener
+            n="v"
+            title="Pilgrimage totals"
+            caption="kilometres on foot in the selected window. lifetime row below."
+            glyph="reliquary"
+          />
+          <RunningTotalsGrid label="in this period" totals={runTotals} />
+          <div style={{ height: 14 }} />
+          <RunningTotalsGrid label="lifetime" totals={lifetimeRunTotals} muted />
+        </>
+      )}
 
       <Ornament variant="diamond" />
 
@@ -424,6 +454,117 @@ function Big({
         >
           {sub}
         </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Pilgrimage totals grid ────────────────────────────────────────
+// Renders a compact row of stats sourced from `lib/pilgrimage/totals`.
+// Used twice on the page — once for the current period, once for the
+// lifetime read — and visually distinguished by the `muted` flag.
+function RunningTotalsGrid({
+  label, totals, muted = false,
+}: {
+  label: string;
+  totals: ReturnType<typeof runPeriodTotals>;
+  muted?: boolean;
+}) {
+  const fmtPace = (s: number | null) => {
+    if (s == null || !isFinite(s)) return "—";
+    const m = Math.floor(s / 60);
+    const r = Math.round(s - m * 60);
+    return `${m}:${String(r).padStart(2, "0")}/km`;
+  };
+  const fmtDur = (s: number) => {
+    const sec = Math.round(s);
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const r = sec % 60;
+    return h ? `${h}:${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}` : `${m}:${String(r).padStart(2, "0")}`;
+  };
+
+  const cellStyle: React.CSSProperties = {
+    padding: "10px 12px",
+    border: `1px solid var(--rule${muted ? "-soft" : ""})`,
+    background: muted ? "transparent" : "color-mix(in oklab, var(--paper) 60%, var(--paper-warm))",
+    display: "flex",
+    flexDirection: "column",
+    gap: 4,
+  };
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gap: 8,
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+      }}
+    >
+      <div
+        style={{
+          gridColumn: "1 / -1",
+          fontFamily: "var(--display)",
+          fontVariant: "small-caps",
+          fontSize: ".58rem",
+          letterSpacing: ".18em",
+          color: muted ? "var(--ash)" : "var(--rubric)",
+          marginBottom: 2,
+        }}
+      >
+        {label}
+      </div>
+      <Stat style={cellStyle} label="kilometres" value={totals.km.toFixed(1)} unit="km" muted={muted} />
+      <Stat style={cellStyle} label="runs" value={String(totals.runs)} muted={muted} />
+      <Stat style={cellStyle} label="hours" value={totals.hours.toFixed(1)} muted={muted} />
+      <Stat style={cellStyle} label="avg pace" value={fmtPace(totals.avgPaceSecPerKm)} muted={muted} />
+      <Stat style={cellStyle} label="avg hr" value={totals.avgHr != null ? `${totals.avgHr.toFixed(0)} bpm` : "—"} muted={muted} />
+      <Stat style={cellStyle} label="longest run"
+        value={totals.longestRunKm > 0 ? `${totals.longestRunKm.toFixed(2)} km` : "—"}
+        sub={totals.longestRunKm > 0 ? fmtDur(totals.longestRunDurationS) : undefined}
+        muted={muted}
+      />
+      <Stat style={cellStyle} label="biggest week"
+        value={totals.biggestWeekKm > 0 ? `${totals.biggestWeekKm.toFixed(1)} km` : "—"}
+        sub={totals.biggestWeekStart ? `wk of ${totals.biggestWeekStart.toISOString().slice(0, 10)}` : undefined}
+        muted={muted}
+      />
+      {!muted && (
+        <Stat style={cellStyle} label="current week" value={totals.currentWeekKm.toFixed(1)} unit="km" muted={muted} />
+      )}
+    </div>
+  );
+}
+
+function Stat({
+  label, value, unit, sub, muted, style,
+}: {
+  label: string; value: string; unit?: string; sub?: string; muted?: boolean; style?: React.CSSProperties;
+}) {
+  return (
+    <div style={style}>
+      <div style={{
+        fontFamily: "var(--display)", fontVariant: "small-caps",
+        fontSize: ".54rem", letterSpacing: ".14em", color: "var(--ash)",
+      }}>{label}</div>
+      <div style={{
+        fontFamily: "var(--mono)",
+        fontVariantNumeric: "tabular-nums oldstyle-nums",
+        fontSize: muted ? ".95rem" : "1.15rem",
+        color: muted ? "var(--ink-light)" : "var(--ink)",
+        letterSpacing: ".02em",
+      }}>
+        {value}
+        {unit && <span style={{
+          fontFamily: "var(--italic)", fontStyle: "italic",
+          fontSize: ".7em", color: "var(--ash)", marginLeft: 4,
+        }}>{unit}</span>}
+      </div>
+      {sub && (
+        <div style={{
+          fontFamily: "var(--italic)", fontStyle: "italic",
+          fontSize: ".68rem", color: "var(--ash)", marginTop: 2,
+        }}>{sub}</div>
       )}
     </div>
   );

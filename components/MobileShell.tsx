@@ -25,6 +25,7 @@ import {
   GlyphHome,
   GlyphHistory,
   GlyphPlates,
+  GlyphStations,
   GlyphLedger,
   GlyphTotals,
   GlyphCrest,
@@ -58,10 +59,11 @@ export function MobileShell() {
 
   const tabs: Array<{ href: string; label: string; Glyph: React.ComponentType<{ size?: number; rubric?: boolean }> }> = [
     { href: "/", label: "home", Glyph: GlyphHome },
-    { href: "/workouts", label: "history", Glyph: GlyphHistory },
+    { href: "/history", label: "history", Glyph: GlyphHistory },
   ];
   const tabsRight: Array<{ href: string; label: string; Glyph: React.ComponentType<{ size?: number; rubric?: boolean }> }> = [
     { href: "/insights", label: "plates", Glyph: GlyphPlates },
+    { href: "/stations", label: "stations", Glyph: GlyphStations },
   ];
 
   return (

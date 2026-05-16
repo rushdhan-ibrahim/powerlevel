@@ -292,7 +292,7 @@ export default function UploadPage() {
             <Ornament variant="diamond" />
             <button
               type="button"
-              onClick={() => router.push("/workouts")}
+              onClick={() => router.push("/history")}
               className="btn btn-rubric btn-quill"
             >
               done — open history

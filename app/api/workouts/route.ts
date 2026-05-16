@@ -12,7 +12,7 @@ import { reprocessStoredImage, deleteStorageObjects } from "@/lib/image_pipeline
  * data instead of serving a 60-second-stale snapshot.
  */
 function invalidateAllWorkoutViews() {
-  for (const p of ["/", "/workouts", "/insights", "/ledger", "/totals", "/profile"]) {
+  for (const p of ["/", "/history", "/workouts", "/insights", "/ledger", "/totals", "/profile"]) {
     revalidatePath(p);
   }
   // Every per-exercise page could be affected by a new set — nuke the

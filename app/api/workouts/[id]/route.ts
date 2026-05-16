@@ -10,7 +10,7 @@ import {
 } from "@/lib/exercise_library";
 
 function invalidateAllWorkoutViews() {
-  for (const p of ["/", "/workouts", "/insights", "/ledger", "/totals", "/profile"]) {
+  for (const p of ["/", "/history", "/workouts", "/insights", "/ledger", "/totals", "/profile"]) {
     revalidatePath(p);
   }
   revalidatePath("/exercises/[slug]", "page");

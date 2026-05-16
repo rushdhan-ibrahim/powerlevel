@@ -81,7 +81,7 @@ export default async function WorkoutPage({
         }}
       >
         <Link
-          href="/workouts"
+          href="/history"
           style={{
             fontFamily: "var(--display)",
             fontVariant: "small-caps",

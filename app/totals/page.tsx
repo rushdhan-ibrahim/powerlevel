@@ -5,22 +5,26 @@ import { TotalsClient } from "@/components/TotalsClient";
 import { Headpiece } from "@/components/manuscript/Headpiece";
 import { Vesica } from "@/components/manuscript/plates/Vesica";
 import { PageIncipit } from "@/components/manuscript/PageIncipit";
+import { loadAllRuns } from "@/lib/pilgrimage/totals";
 
 export const revalidate = 60;
 
 export default async function TotalsPage() {
-  const raw = await prisma.workout.findMany({
-    orderBy: { date: "asc" },
-    omit: {
-      rawParseJson: true,
-      parseModel: true,
-      parseTokensIn: true,
-      parseTokensOut: true,
-      createdAt: true,
-      updatedAt: true,
-    },
-    include: { exercises: { include: { sets: true } } },
-  });
+  const [raw, runs] = await Promise.all([
+    prisma.workout.findMany({
+      orderBy: { date: "asc" },
+      omit: {
+        rawParseJson: true,
+        parseModel: true,
+        parseTokensIn: true,
+        parseTokensOut: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      include: { exercises: { include: { sets: true } } },
+    }),
+    loadAllRuns(),
+  ]);
 
   if (raw.length === 0) {
     return (
@@ -60,6 +64,15 @@ export default async function TotalsPage() {
     date: w.date.toISOString(),
   }));
 
+  const serialisedRuns = runs.map((r) => ({
+    ...r,
+    date: r.date.toISOString(),
+  }));
+
   // freeze "today" from the server so SSR and client agree to the millisecond
-  return <TotalsClient workouts={serialised} todayIso={new Date().toISOString()} />;
+  return <TotalsClient
+    workouts={serialised}
+    runs={serialisedRuns}
+    todayIso={new Date().toISOString()}
+  />;
 }

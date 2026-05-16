@@ -22,23 +22,25 @@ import { format } from "date-fns";
 import { polar, pointRing, roman } from "@/lib/manuscript";
 
 const ROUTE_LABEL: Record<string, string> = {
-  "/": "home",
-  "/workouts": "history",
+  "/":         "home",
+  "/history":  "history",
   "/insights": "plates",
-  "/ledger": "ledger",
-  "/totals": "totals",
-  "/upload": "compose",
-  "/profile": "profile",
+  "/ledger":   "ledger",
+  "/stations": "stations",
+  "/totals":   "totals",
+  "/upload":   "compose",
+  "/profile":  "profile",
 };
 
 const ROUTE_FOLIO: Record<string, string> = {
-  "/": "i",
-  "/workouts": "ii",
+  "/":         "i",
+  "/history":  "ii",
   "/insights": "iii",
-  "/ledger": "iv",
-  "/totals": "v",
-  "/upload": "vi",
-  "/profile": "vii",
+  "/ledger":   "iv",
+  "/stations": "v",
+  "/totals":   "vi",
+  "/upload":   "vii",
+  "/profile":  "viii",
 };
 
 const APHORISMS = [
@@ -53,8 +55,10 @@ const APHORISMS = [
 
 export function GutterFurniture() {
   const pathname = usePathname();
-  const route = pathname.startsWith("/workouts/")
-    ? "/workouts"
+  // Map workout-detail and run-detail pages back to History; map
+  // exercise-detail pages back to Insights for the folio label.
+  const route = pathname.startsWith("/workouts/") || pathname.startsWith("/runs/")
+    ? "/history"
     : pathname.startsWith("/exercises/")
       ? "/insights"
       : pathname;

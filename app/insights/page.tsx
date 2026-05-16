@@ -30,6 +30,8 @@ import { YearHeatmap } from "@/components/manuscript/plates/YearHeatmap";
 import { ChapterPager } from "@/components/manuscript/ChapterPager";
 import { format } from "date-fns";
 import { roman } from "@/lib/manuscript";
+// — Pilgrimage (running) section, appended as §VII —
+import { InsightsPilgrimage } from "@/components/InsightsPilgrimage";
 
 export const revalidate = 60;
 
@@ -220,6 +222,12 @@ export default async function InsightsPage() {
           />
         </section>
       </ChapterPager>
+
+      <Ornament variant="diamond" />
+
+      {/* §VII Pilgrimage — the running half of the insights chapter.
+          Self-fetches; renders a single principle callout if no runs. */}
+      <InsightsPilgrimage sectionN={7} />
 
       <Ornament variant="diamond" />
 

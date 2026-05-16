@@ -12,7 +12,7 @@ export function DeleteWorkoutButton({ id }: { id: string }) {
     setDeleting(true);
     const res = await fetch(`/api/workouts/${id}`, { method: "DELETE" });
     if (res.ok) {
-      router.push("/workouts");
+      router.push("/history");
       router.refresh();
     } else {
       setDeleting(false);
