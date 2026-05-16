@@ -10,16 +10,18 @@ import {
   GlyphCompass,
   GlyphHourglassOrnament,
   GlyphChapletOrnament,
+  GlyphReliquaryOrnament,
   GlyphSeed,
 } from "./Glyphs";
 
-type GlyphKind = "rose" | "compass" | "hourglass" | "chaplet" | "seed";
+type GlyphKind = "rose" | "compass" | "hourglass" | "chaplet" | "reliquary" | "seed";
 
 const GLYPH_MAP: Record<GlyphKind, React.ComponentType<{ size?: number }>> = {
   rose: GlyphRose,
   compass: GlyphCompass,
   hourglass: GlyphHourglassOrnament,
   chaplet: GlyphChapletOrnament,
+  reliquary: GlyphReliquaryOrnament,
   seed: GlyphSeed,
 };
 

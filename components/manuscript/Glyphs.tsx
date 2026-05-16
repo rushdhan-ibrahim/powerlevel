@@ -273,6 +273,34 @@ export function GlyphStations({ size = 18, rubric, className }: GlyphProps) {
   );
 }
 
+/**
+ * Reliquary — a tall narrow chest crowned with a small dome and
+ * holding three small niches. Used as the chapter opener glyph for
+ * the §VII Pilgrimage section on /insights.
+ */
+export function GlyphReliquaryOrnament({ size = 32 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 40 40" width={size} height={size} aria-hidden="true">
+      {/* dome on top */}
+      <path d="M 12 12 Q 20 4, 28 12" fill="none" stroke="var(--ink)" strokeWidth=".55" opacity=".85" />
+      <circle cx="20" cy="6" r="1.4" fill="var(--rubric)" opacity=".85" />
+      {/* main cabinet body */}
+      <rect x="10" y="12" width="20" height="22" fill="none" stroke="var(--ink)" strokeWidth=".6" opacity=".85" />
+      {/* three small arched niches inside */}
+      {[14, 19, 24].map((x) => (
+        <g key={x}>
+          <path d={`M ${x - 1.5} 28 L ${x - 1.5} 18 Q ${x} 16, ${x + 1.5} 18 L ${x + 1.5} 28`}
+            fill="none" stroke="var(--ink)" strokeWidth=".4" opacity=".7" />
+          <circle cx={x} cy={23} r={0.8} fill="var(--rubric)" opacity={x === 19 ? 0.95 : 0.65} />
+        </g>
+      ))}
+      {/* baseline / footing */}
+      <line x1="8" y1="34" x2="32" y2="34" stroke="var(--ink)" strokeWidth=".5" opacity=".7" />
+      <line x1="6" y1="36" x2="34" y2="36" stroke="var(--ink)" strokeWidth=".3" opacity=".4" />
+    </svg>
+  );
+}
+
 export function GlyphSeed({ size = 32 }: { size?: number }) {
   // phyllotaxis seed glyph
   const ga = (137.508 * Math.PI) / 180;
