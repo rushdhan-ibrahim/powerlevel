@@ -11,19 +11,19 @@ datasource db {
 }
 
 model Workout {
-  id              String   @id @default(cuid())
-  date            DateTime
-  title           String?
-  notes           String?
-  bodyweight      Float?
-  durationMin     Int?
-  imagePath       String?       // legacy single-image (still used for first page)
-  rawParseJson    String?
-  parseModel      String?
-  parseTokensIn   Int?
-  parseTokensOut  Int?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  date           DateTime
+  title          String?
+  notes          String?
+  bodyweight     Float?
+  durationMin    Int?
+  imagePath      String? // legacy single-image (still used for first page)
+  rawParseJson   String?
+  parseModel     String?
+  parseTokensIn  Int?
+  parseTokensOut Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   exercises    Exercise[]
   pages        WorkoutPage[]
@@ -39,10 +39,10 @@ model Workout {
  * (kept on Workout for the first / primary page).
  */
 model WorkoutPage {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   workoutId String
   imagePath String
-  order     Int      @default(0)
+  order     Int    @default(0)
 
   workout Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
 
@@ -50,17 +50,17 @@ model WorkoutPage {
 }
 
 model Exercise {
-  id              String   @id @default(cuid())
-  workoutId       String
-  name            String
-  normalizedName  String
-  canonicalSlug   String?     // matched to the library, e.g. "bench_press"
-  category        String?     // weighted_reps | bodyweight_reps | timed_hold | carry | distance_time | cardio_distance | reps_only
-  pattern         String?     // movement pattern (horizontal_push, hinge, etc.)
-  variation       String?     // free-form qualifier (paused, tempo 3-1-1, close-grip, deficit)
-  muscleGroup     String?
-  notes           String?
-  order           Int      @default(0)
+  id             String  @id @default(cuid())
+  workoutId      String
+  name           String
+  normalizedName String
+  canonicalSlug  String? // matched to the library, e.g. "bench_press"
+  category       String? // weighted_reps | bodyweight_reps | timed_hold | carry | distance_time | cardio_distance | reps_only
+  pattern        String? // movement pattern (horizontal_push, hinge, etc.)
+  variation      String? // free-form qualifier (paused, tempo 3-1-1, close-grip, deficit)
+  muscleGroup    String?
+  notes          String?
+  order          Int     @default(0)
 
   workout Workout       @relation(fields: [workoutId], references: [id], onDelete: Cascade)
   sets    ExerciseSet[]
@@ -71,18 +71,18 @@ model Exercise {
 }
 
 model ExerciseSet {
-  id           String   @id @default(cuid())
-  exerciseId   String
-  order        Int      @default(0)
-  weight       Float?    // bar load (weighted) or added load (bodyweight) or carried load (carry)
-  weightUnit   String?  @default("kg")
-  reps         Int?
-  durationSec  Int?     // for timed_hold, carry-with-time, cardio
-  distanceM    Float?   // for carry, distance_time, cardio_distance
-  rpe          Float?
-  isWarmup     Boolean  @default(false)
-  isFailure    Boolean  @default(false)
-  notes        String?
+  id          String  @id @default(cuid())
+  exerciseId  String
+  order       Int     @default(0)
+  weight      Float? // bar load (weighted) or added load (bodyweight) or carried load (carry)
+  weightUnit  String? @default("kg")
+  reps        Int?
+  durationSec Int? // for timed_hold, carry-with-time, cardio
+  distanceM   Float? // for carry, distance_time, cardio_distance
+  rpe         Float?
+  isWarmup    Boolean @default(false)
+  isFailure   Boolean @default(false)
+  notes       String?
 
   exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
 
@@ -97,11 +97,11 @@ model ExerciseSet {
  * as its own card.
  */
 model SessionNote {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   workoutId String
   body      String
-  kind      String?  // e.g. "feeling", "sleep", "injury", "general"
-  order     Int      @default(0)
+  kind      String? // e.g. "feeling", "sleep", "injury", "general"
+  order     Int     @default(0)
 
   workout Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
 
@@ -114,14 +114,229 @@ model SessionNote {
  * Always identified by id = "singleton".
  */
 model Profile {
-  id            String   @id @default("singleton")
-  displayName   String?
-  heightCm      Float?
-  bodyweightKg  Float?        // current manual override; else pulled from latest workout.bodyweight
-  birthYear     Int?
-  sex           String?       // "male" | "female" | null
-  goal          String?       // "strength" | "hypertrophy" | "recovery" | "general"
-  units         String?  @default("kg")
-  updatedAt     DateTime @updatedAt
-  createdAt     DateTime @default(now())
+  id           String   @id @default("singleton")
+  displayName  String?
+  heightCm     Float?
+  bodyweightKg Float? // current manual override; else pulled from latest workout.bodyweight
+  birthYear    Int?
+  sex          String? // "male" | "female" | null
+  goal         String? // "strength" | "hypertrophy" | "recovery" | "general"
+  units        String?  @default("kg")
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────────────────────────────
+//  THE PILGRIMAGE — running half of the chronicle
+// ─────────────────────────────────────────────────────────────────────
+
+/**
+ * One run. Sibling to Workout; sport-distinct because the natural
+ * shape of a run (continuous GPS + HR samples, splits, pace) does
+ * not map cleanly onto Exercise/ExerciseSet. Currently sourced from
+ * Garmin Connect via the daily sync, or backfilled from local FIT.
+ */
+model Run {
+  id               String   @id @default(cuid())
+  garminActivityId String?  @unique // canonical id when Garmin-sourced
+  fileSha256       String?  @unique // dedupe across manual + cron imports
+  date             DateTime // local date of activity (midnight)
+  startedAt        DateTime // UTC
+  startedAtLocal   DateTime // user's timezone
+  sport            String   @default("running") // running only (we filter at ingest)
+  subSport         String?
+  source           String   @default("garmin") // garmin | manual | imported
+
+  title    String?
+  location String? // free-form, from FIT metadata
+
+  // Aggregates — denormalised for fast page render, recomputed on import
+  distanceM        Float
+  durationS        Float // moving time
+  elapsedS         Float
+  avgPaceSecPerKm  Float?
+  avgSpeedMps      Float?
+  maxSpeedMps      Float?
+  avgHr            Float?
+  maxHr            Float?
+  avgCadenceSpm    Float? // running steps/min (already doubled)
+  avgPowerW        Float?
+  normalizedPowerW Float?
+  ascentM          Float?
+  descentM         Float?
+  calories         Int?
+
+  // Coach-style derived metrics, computed at import for cheap reads
+  ctlAtEnd      Float? // chronic load on this run's day
+  atlAtEnd      Float? // acute load
+  tsbAtEnd      Float? // training stress balance
+  decouplingPct Float? // aerobic decoupling % (positive = drift)
+  zonesJson     String? // {Z1, Z2, Z3, Z4, Z5} seconds
+
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  records     RunRecord[]
+  laps        RunLap[]
+  bestEfforts RunBestEffort[]
+
+  @@index([date])
+  @@index([startedAt])
+  @@index([sport])
+}
+
+/**
+ * Sampled timeseries — one row per record sample. Downsampled to
+ * 5-second cadence on ingest (1 Hz raw is kept in Supabase Storage
+ * as a compressed JSON sidecar for the rare detail view).
+ */
+model RunRecord {
+  id         String  @id @default(cuid())
+  runId      String
+  tSec       Float // seconds from start
+  lat        Float?
+  lon        Float?
+  distanceM  Float?
+  speedMps   Float?
+  altitudeM  Float?
+  hr         Int?
+  cadenceSpm Float?
+  powerW     Float?
+  tempC      Float?
+  pauseBreak Boolean @default(false) // marks resumption after >30s gap
+
+  run Run @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId, tSec])
+}
+
+/**
+ * Auto-laps and manual laps from the FIT file. Indexed for the
+ * per-run lap table on the detail page.
+ */
+model RunLap {
+  id              String @id @default(cuid())
+  runId           String
+  lapIndex        Int
+  distanceM       Float?
+  durationS       Float?
+  avgPaceSecPerKm Float?
+  avgHr           Float?
+  avgCadenceSpm   Float?
+
+  run Run @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@index([runId])
+}
+
+/**
+ * Best-effort windows for 1k / 3k / 5k / 10k computed at import.
+ * Per-run records of the fastest contiguous window of that distance.
+ * The "PR" view picks the all-time minimum across these.
+ */
+model RunBestEffort {
+  id           String @id @default(cuid())
+  runId        String
+  distanceM    Int // 1000 | 3000 | 5000 | 10000
+  paceSecPerKm Float
+
+  run Run @relation(fields: [runId], references: [id], onDelete: Cascade)
+
+  @@unique([runId, distanceM])
+}
+
+/**
+ * Cross-sport injury record — lives outside Run so it can also cover
+ * lifting injuries later. Manual entry (no automated detection).
+ */
+model Injury {
+  id        String    @id @default(cuid())
+  startDate DateTime
+  endDate   DateTime? // null = still active or managing
+  label     String // e.g. "Posterior tibialis tendinopathy"
+  status    String // active | managing | resolved
+  tissueIds String // CSV of tissue ids ("post_tib,shin_periosteum")
+  summary   String?
+  color     String    @default("#ef4444")
+  createdAt DateTime  @default(now())
+}
+
+/**
+ * Goal race — exactly one is "active" at a time. Drives the
+ * countdown card in the Codex and the /pilgrim-week itinerary.
+ */
+model RaceGoal {
+  id                 String   @id @default(cuid())
+  raceDate           DateTime
+  name               String // "Hulhumalé 5K"
+  distanceM          Int // 5000
+  targetPaceSecPerKm Float?
+  status             String   @default("active") // active | past | abandoned
+  createdAt          DateTime @default(now())
+}
+
+/**
+ * Singleton row of Garmin OAuth state. Tokens are encrypted via
+ * pgsodium AEAD at the column level (see migration). Single-user
+ * app, so a fixed id is fine.
+ */
+model GarminCredential {
+  id              String   @id @default("singleton")
+  emailAddress    String
+  oauth1TokenEnc  String // base64 of pgsodium AEAD ciphertext
+  oauth2TokenEnc  String
+  lastRefreshedAt DateTime
+  updatedAt       DateTime @updatedAt
+}
+
+/**
+ * Audit log for the daily Garmin cron. One row per sync attempt,
+ * success or failure. Shown on Settings as a small Catalog.
+ */
+model GarminSyncRun {
+  id            String    @id @default(cuid())
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+  ok            Boolean   @default(false)
+  filesSeen     Int       @default(0)
+  filesImported Int       @default(0)
+  filesSkipped  Int       @default(0)
+  error         String?
+  details       String?
+
+  @@index([startedAt])
+}
+
+/**
+ * The Stations — long-form chapter ledger for the running story.
+ * Each chapter is a folio of body-prose interleaved with live
+ * figure references. Chapters seeded at first deploy (the initial
+ * ten) become editable rows; the weekly cron drafts new ones via
+ * the Anthropic API; the user reviews and publishes.
+ * kind="station" covers running; future kind="codex" will cover
+ * lifting cycles with the same machinery.
+ */
+model Chapter {
+  id                  String    @id @default(cuid())
+  kind                String    @default("station") // station | codex
+  ordinal             Int // chapter number for in-kind ordering
+  anchor              String    @unique // "ch-opening", "ch-spike", …
+  kicker              String // "Chapter I · The opening"
+  title               String
+  lead                String // pull-quote opening
+  bodyMd              String // markdown body
+  figuresJson         String // JSON array of figure specs
+  calloutJson         String? // {title, body} for the Lesson box
+  coveringPeriodStart DateTime? // data window described
+  coveringPeriodEnd   DateTime?
+  source              String    @default("seed") // seed | claude-weekly | claude-code | manual
+  draftAt             DateTime? // present until published
+  publishedAt         DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@index([kind, ordinal])
+  @@index([publishedAt])
 }

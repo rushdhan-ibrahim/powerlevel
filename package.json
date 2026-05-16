@@ -12,6 +12,7 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@garmin/fitsdk": "^21.202.0",
     "@google/genai": "^1.0.0",
     "@prisma/client": "^6.2.0",
     "@supabase/ssr": "^0.10.2",

@@ -13,7 +13,8 @@ export function Nav() {
 
   const links = [
     { href: "/", label: "home" },
-    { href: "/workouts", label: "history" },
+    { href: "/history", label: "history" },
+    { href: "/stations", label: "stations" },
     { href: "/insights", label: "plates" },
     { href: "/ledger", label: "ledger" },
     { href: "/totals", label: "totals" },

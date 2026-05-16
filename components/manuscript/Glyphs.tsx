@@ -220,6 +220,59 @@ export function GlyphChapletOrnament({ size = 32 }: { size?: number }) {
   );
 }
 
+/**
+ * A pilgrim's mark — a four-point star (the goal) above a horizon
+ * line strewn with diminishing dots (the road already walked).
+ * Used in the masthead for the Pilgrimage chapter.
+ */
+export function GlyphPilgrim({ size = 18, rubric, className }: GlyphProps) {
+  const s = stroke(rubric);
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className={className}>
+      {/* four-point star — the destination */}
+      <path
+        d="M 12 3 L 13 7 L 17 8 L 13 9 L 12 13 L 11 9 L 7 8 L 11 7 Z"
+        fill="none"
+        stroke={s}
+        strokeWidth=".7"
+        strokeLinejoin="round"
+        opacity=".9"
+      />
+      {/* horizon */}
+      <line x1="3" y1="17" x2="21" y2="17" stroke={s} strokeWidth=".4" opacity=".55" />
+      {/* the road — footfalls of diminishing size */}
+      <circle cx="6"  cy="17" r="1.4" fill={s} opacity=".85" />
+      <circle cx="11" cy="17" r="1"   fill={s} opacity=".65" />
+      <circle cx="15" cy="17" r=".7"  fill={s} opacity=".5"  />
+      <circle cx="18" cy="17" r=".4"  fill={s} opacity=".35" />
+    </svg>
+  );
+}
+
+/**
+ * Stations — three pillars rising from a single rule, the central
+ * one taller and crowned. A frieze of waypoints in miniature.
+ */
+export function GlyphStations({ size = 18, rubric, className }: GlyphProps) {
+  const s = stroke(rubric);
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true" className={className}>
+      {/* baseline */}
+      <line x1="3" y1="20" x2="21" y2="20" stroke={s} strokeWidth=".5" opacity=".6" />
+      {/* three pillars */}
+      <line x1="6"  y1="20" x2="6"  y2="8" stroke={s} strokeWidth=".55" opacity=".8" />
+      <line x1="12" y1="20" x2="12" y2="5" stroke={s} strokeWidth=".7"  opacity=".9" />
+      <line x1="18" y1="20" x2="18" y2="8" stroke={s} strokeWidth=".55" opacity=".8" />
+      {/* finials */}
+      <circle cx="6"  cy="7" r="1.1" fill={s} opacity=".8"  />
+      <circle cx="12" cy="4" r="1.3" fill={s} opacity=".95" />
+      <circle cx="18" cy="7" r="1.1" fill={s} opacity=".8"  />
+      {/* cross-arm on the central pillar */}
+      <line x1="9.5" y1="9" x2="14.5" y2="9" stroke={s} strokeWidth=".5" opacity=".55" />
+    </svg>
+  );
+}
+
 export function GlyphSeed({ size = 32 }: { size?: number }) {
   // phyllotaxis seed glyph
   const ga = (137.508 * Math.PI) / 180;

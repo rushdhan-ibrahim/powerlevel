@@ -28,6 +28,8 @@ import {
   GlyphPlates,
   GlyphLedger,
   GlyphTotals,
+  GlyphPilgrim,
+  GlyphStations,
   GlyphAdd,
   GlyphCrest,
 } from "./Glyphs";
@@ -37,14 +39,19 @@ type NavItem = {
   label: string;
   Glyph: React.ComponentType<{ size?: number; rubric?: boolean; className?: string }>;
   rubric?: boolean;
+  matchPrefixes?: string[];
 };
 
+// Note: "history" now covers both paper workouts AND runs (PR 2).
+// Workout-detail pages still live under /workouts/* — the prefix match
+// keeps history highlighted while you're inside a single workout.
 const NAV: NavItem[] = [
-  { href: "/", label: "home", Glyph: GlyphHome },
-  { href: "/workouts", label: "history", Glyph: GlyphHistory },
-  { href: "/insights", label: "plates", Glyph: GlyphPlates },
-  { href: "/ledger", label: "ledger", Glyph: GlyphLedger },
-  { href: "/totals", label: "totals", Glyph: GlyphTotals },
+  { href: "/",         label: "home",     Glyph: GlyphHome },
+  { href: "/history",  label: "history",  Glyph: GlyphHistory, matchPrefixes: ["/history", "/workouts", "/runs"] },
+  { href: "/insights", label: "plates",   Glyph: GlyphPlates },
+  { href: "/ledger",   label: "ledger",   Glyph: GlyphLedger },
+  { href: "/stations", label: "stations", Glyph: GlyphStations },
+  { href: "/totals",   label: "totals",   Glyph: GlyphTotals },
 ];
 
 const ACTION: NavItem = { href: "/upload", label: "add", Glyph: GlyphAdd, rubric: true };
@@ -54,8 +61,11 @@ export function Masthead() {
   // The login and auth-callback pages are pre-session — the profile link
   // and sign-out button inside the masthead wouldn't make sense there.
   if (pathname === "/login" || pathname.startsWith("/auth/")) return null;
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+  const isActive = (item: NavItem) => {
+    if (item.href === "/") return pathname === "/";
+    const prefixes = item.matchPrefixes ?? [item.href];
+    return prefixes.some((p) => pathname.startsWith(p));
+  };
 
   const today = new Date();
   const day = format(today, "EEE").toLowerCase(); // fri
@@ -114,13 +124,13 @@ export function Masthead() {
             <NavBay
               key={item.href}
               item={item}
-              active={isActive(item.href)}
+              active={isActive(item)}
             />
           ))}
         </div>
         <div className="masthead-pilaster" aria-hidden="true" />
         <div className="masthead-action">
-          <NavBay item={ACTION} active={isActive(ACTION.href)} action />
+          <NavBay item={ACTION} active={isActive(ACTION)} action />
         </div>
       </nav>
     </header>
